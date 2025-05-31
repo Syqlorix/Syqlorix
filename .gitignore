@@ -1,0 +1,46 @@
+# Byte-code files
+*.pyc
+__pycache__/
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+parts/
+sdist/
+var/
+*.whl
+*.mo
+*.pot
+
+# Caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+.env
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Specific to Codespaces (or VS Code general)
+.vscode/
+.devcontainer/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# HTML output from examples
+index.html
+
+# Flask specific (if using the Flask example)
+.flaskenv
+
+# Static assets directory (for source, comment out or adjust)
+static/
+public/ # New for build output
+dist_static/ # For alternative build output
