@@ -69,6 +69,9 @@ with home_page.body:
         home_page.p("This page links to an external CSS file: `static/css/main.css`.")
         home_page.p("The header and footer are reusable Python components.")
         home_page.p("Also, the `meta` and `title` tags are now directly addable.")
+        home_page.br()
+        home_page.raw("<b>This is some <i>raw</i> HTML inserted directly.</b>")
+        home_page.p("The line above was inserted using `page.raw()`.")
     common_footer(home_page)
 
 about_page = Page(title="About Us")

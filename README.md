@@ -41,6 +41,7 @@ For comprehensive examples and detailed usage instructions, please refer to the 
 *   `page.link_js(src='...')` -> Add an external JavaScript file link to the `</body>`.
 *   `page.meta(...)`, `page.link(...)`, `page.base(...)`, `page.title(...)` -> These tags can now be directly called on the `page` object and are automatically added to the `<head>`.
 *   `page.render()` -> Outputs the full HTML page string including `<!DOCTYPE html>`.
+*   `page.raw(html_content)` -> **NEW**: Inserts raw, unescaped HTML content directly into the page.
 *   `syqlorix serve <routes_file.py>` -> CLI command to start a multi-page development server, serving pages and static assets from the project root, providing a clickable link and auto-detection in Codespaces.
 *   `syqlorix build <routes_file.py> -o <output_dir>` -> CLI command to generate a static site from a routes file, including copying static assets.
 

@@ -1,4 +1,4 @@
-from .page import _Element
+from .page import _Element, _RawHtml 
 from .utils import escape_html, format_attrs
 
 SELF_CLOSING_TAGS = {
@@ -6,7 +6,7 @@ SELF_CLOSING_TAGS = {
     "link", "meta", "param", "source", "track", "wbr"
 }
 
-RAW_CONTENT_TAGS = {"script", "style"}
+RAW_CONTENT_TAGS = {"script", "style"} 
 
 def _render_element(element: _Element) -> str:
     tag = element.tag
@@ -22,7 +22,9 @@ def _render_element(element: _Element) -> str:
     for child in element.children:
         if isinstance(child, _Element):
             children_html.append(_render_element(child))
-        else:
+        elif isinstance(child, _RawHtml): 
+            children_html.append(child.content)
+        else: 
             if tag in RAW_CONTENT_TAGS:
                 children_html.append(str(child))
             else:

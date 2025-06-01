@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "syqlorix"
-version = "0.0.1.5"
+version = "0.0.1.6" 
 description = "A hyper-minimal Python DSL for HTML + CSS + JS in one file."
 readme = "README.md"
 requires-python = ">=3.8"
@@ -32,7 +32,7 @@ classifiers = [
 Homepage = "https://github.com/Syqlorix/Syqlorix"
 "Bug Tracker" = "https://github.com/Syqlorix/Syqlorix/issues"
 "Source Code" = "https://github.com/Syqlorix/Syqlorix"
-Documentation = "https://github.com/Syqlorix/Syqlorix#readme"
+Documentation = "https://github.com/Syqlorix/syqlorix.github.io" 
 
 [tool.setuptools]
 packages = ["syqlorix"]
