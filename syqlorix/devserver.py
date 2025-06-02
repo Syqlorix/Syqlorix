@@ -104,8 +104,11 @@ class Route:
     route=route or self.__class__(path)
     self.ROUTES[path] = route
     return route
+    
+  def serve(self, bind: str = "localhost", port: int = 8000, project_root: str = None):
+    return serve_pages_dev(self.map_routes(), bind, port, project_root)
 
-def serve_pages_dev(routes: Dict[str, Union[Page, Callable[[], Page]]], port: int = 8000, project_root: str = None):
+def serve_pages_dev(routes: Dict[str, Union[Page, Callable[[], Page]]], bind: str = "localhost", port: int = 8000, project_root: str = None):
     route, routes = routes, {}
     for p, c in route.items():
       if isinstance(c, Route):
@@ -124,12 +127,12 @@ def serve_pages_dev(routes: Dict[str, Union[Page, Callable[[], Page]]], port: in
     server_instance_holder = {}
 
     def _start_server():
-        with SyqlorixDevServer(("", port), SyqlorixDevServerHandler, routes_map=routes, directory=project_root) as httpd:
+        with SyqlorixDevServer((bind, port), SyqlorixDevServerHandler, routes_map=routes, directory=project_root) as httpd:
             server_instance_holder['httpd'] = httpd
-            print(f"Syqlorix Dev Server running at http://localhost:{port}/")
+            print(f"Syqlorix Dev Server running at http://{bind}:{port}/")
             print("Available routes:")
             for route_path in routes.keys():
-                print(f"  - http://localhost:{port}{route_path}")
+                print(f"  - http://{bind}:{port}{route_path}")
             print(f"Serving static files from: {os.path.join(project_root, 'static')}")
             httpd.serve_forever()
 
@@ -141,7 +144,7 @@ def serve_pages_dev(routes: Dict[str, Union[Page, Callable[[], Page]]], port: in
     print("\n" + "="*50)
     print(" Your Syqlorix site is ready! ")
     print(" Access it via the Codespaces 'Ports' tab or click a link above.")
-    print(f"   Main page: http://localhost:{port}/")
+    print(f"   Main page: http://{bind}:{port}/")
     print("="*50 + "\n")
     print("Press Enter to close the server and exit...")
     input()
