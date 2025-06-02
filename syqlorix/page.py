@@ -1,7 +1,10 @@
+import os
+from typing import Callable, Any, Union
+
 from .utils import escape_html, format_attrs
+from .components import component 
 
 class _RawHtml:
-    """Internal marker class for raw, unescaped HTML content."""
     def __init__(self, content: str):
         self.content = content
 
@@ -41,11 +44,15 @@ class Page:
         "header", "footer", "nav", "article", "section", "aside", "main", "figure",
         "figcaption", "fieldset", "legend", "details", "summary", "a", "button",
         "img", "input", "br", "hr", "embed", "wbr",
-        "meta", "link", "base", "title"
+        "meta", "link", "base", "title",
+        "textarea",
+        "label",
+
     }
     RETURN_ONLY_TAGS = {
         "li",
         "col", "param", "source", "track",
+        "option",
     }
 
     def __init__(self, title: str = ""):
@@ -80,7 +87,7 @@ class Page:
             for item in content:
                 if isinstance(item, _Element):
                     new_element.add_child(item)
-                elif isinstance(item, _RawHtml): 
+                elif isinstance(item, _RawHtml):
                     new_element.add_child(item)
                 else:
                     new_element.add_child(str(item))
@@ -94,7 +101,7 @@ class Page:
                 if html_tag_name in {"div", "ul", "ol", "p", "span", "h1", "h2", "h3", "h4", "h5", "h6",
                                     "form", "table", "tr", "td", "th", "header", "footer", "nav", "article",
                                     "section", "aside", "main", "figure", "figcaption", "fieldset", "legend",
-                                    "details", "summary", "a", "button"}:
+                                    "details", "summary", "a", "button", "textarea", "label"}:
                     return _ElementContext(self, new_element)
                 else:
                     return new_element
@@ -122,12 +129,82 @@ class Page:
         self._body_scripts.append(_Element("script", script_attrs))
 
     def raw(self, html_content: str):
-        """
-        Adds raw, unescaped HTML content directly to the current parent element.
-        Use with caution, as this content will not be HTML-escaped.
-        """
         raw_html_marker = _RawHtml(html_content)
         self._current_parent.add_child(raw_html_marker)
+
+
+    def text_input(self, name: str, value: str = None, **attrs):
+        input_attrs = {"type": "text", "name": name}
+        if value is not None:
+            input_attrs["value"] = value
+        input_attrs.update(attrs)
+        return self.input(**input_attrs)
+
+    def password_input(self, name: str, value: str = None, **attrs):
+        input_attrs = {"type": "password", "name": name}
+        if value is not None:
+            input_attrs["value"] = value
+        input_attrs.update(attrs)
+        return self.input(**input_attrs)
+
+    def email_input(self, name: str, value: str = None, **attrs):
+        input_attrs = {"type": "email", "name": name}
+        if value is not None:
+            input_attrs["value"] = value
+        input_attrs.update(attrs)
+        return self.input(**input_attrs)
+
+    def number_input(self, name: str, value: Union[int, float] = None, **attrs):
+        input_attrs = {"type": "number", "name": name}
+        if value is not None:
+            input_attrs["value"] = value
+        input_attrs.update(attrs)
+        return self.input(**input_attrs)
+
+    def checkbox(self, name: str, value: str, checked: bool = False, **attrs):
+        input_attrs = {"type": "checkbox", "name": name, "value": value}
+        if checked:
+            input_attrs["checked"] = True
+        input_attrs.update(attrs)
+        return self.input(**input_attrs)
+
+    def radio(self, name: str, value: str, checked: bool = False, **attrs):
+        input_attrs = {"type": "radio", "name": name, "value": value}
+        if checked:
+            input_attrs["checked"] = True
+        input_attrs.update(attrs)
+        return self.input(**input_attrs)
+
+    def submit_button(self, text: str = "Submit", name: str = None, **attrs):
+        button_attrs = {"type": "submit"}
+        if name is not None:
+            button_attrs["name"] = name
+        button_attrs.update(attrs)
+        return self.button(text, **button_attrs)
+
+    def select(self, *content, **attrs):
+        """
+        Creates a <select> element and returns it as a context manager.
+        This explicitly makes page.select() a context manager.
+        """
+        select_elem = _Element("select", attrs)
+        for item in content:
+            if isinstance(item, _Element):
+                select_elem.add_child(item)
+            elif isinstance(item, _RawHtml):
+                select_elem.add_child(item)
+            else:
+                select_elem.add_child(str(item))
+        
+        self._current_parent.add_child(select_elem)
+        return _ElementContext(self, select_elem)
+
+    def add_component(self, component_func: Callable, *args, **kwargs):
+        if not hasattr(component_func, '_is_syqlorix_component') or not component_func._is_syqlorix_component:
+            raise TypeError(f"'{component_func.__name__}' is not a valid Syqlorix component. "
+                            "Ensure it is decorated with `@component` from `syqlorix.components`.")
+        
+        component_func(self, *args, **kwargs)
 
     def render(self) -> str:
         from .render import render_page
