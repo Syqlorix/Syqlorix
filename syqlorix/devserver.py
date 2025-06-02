@@ -33,10 +33,12 @@ class SyqlorixDevServerHandler(http.server.SimpleHTTPRequestHandler):
         if path in self.routes_map:
             page_source = self.routes_map[path]
             try:
+                if callable(page_source):
+                    page_source = page_source()
                 if isinstance(page_source, Page):
                     html_content = page_source.render()
-                elif callable(page_source):
-                    html_content = page_source().render()
+                elif isinstance(page_source, str):
+                    html_content = page_source
                 else:
                     self.send_error(500, "Invalid page source in route map.")
                     return
@@ -77,9 +79,9 @@ class SyqlorixDevServer(socketserver.TCPServer):
         super().__init__(server_address, RequestHandlerClass, bind_and_activate)
 
 class Route:
-  ROUTES = {}
   def __init__(self, path: str = "/"):
     self.path = path
+    self.ROUTES = {}
   
   def route(self, path: str = "/"):
     assert path.startswith("/"), ValueError("Path must start with '/'")
@@ -96,13 +98,13 @@ class Route:
       if isinstance(c, Route):
         resp.update(c.map_routes())
       else:
-        resp[path+p] = c
+        resp[path+p.rstrip("/")] = c
       
     return resp
     
-  def subroute(self, path: str, route: "Route" = None):
-    route=route or self.__class__(path)
-    self.ROUTES[path] = route
+  def subroute(self, path: Union[str, "Route"]):
+    route=path if isinstance(path, Route) else self.__class__(path)
+    self.ROUTES[route.path] = route
     return route
     
   def serve(self, bind: str = "localhost", port: int = 8000, project_root: str = None):
