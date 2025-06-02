@@ -1,7 +1,8 @@
 from .page import Page
-from .devserver import serve_pages_dev, Route
 from .css import css
+from .components import component
+from .devserver import start_dev_server, Route
 
-__version__ = "0.0.1.7"
+__version__ = "0.0.2.3"
 
-__all__ = ["Page", "serve_pages_dev", "css"]
+__all__ = ["Page", "start_dev_server", "css", "component", "Route"]

@@ -44,3 +44,5 @@ index.html
 static/
 public/ # New for build output
 dist_static/ # For alternative build output
+
+MANIFEST.in
