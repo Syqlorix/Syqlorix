@@ -76,8 +76,42 @@ class SyqlorixDevServer(socketserver.TCPServer):
         self.directory = directory
         super().__init__(server_address, RequestHandlerClass, bind_and_activate)
 
+class Route:
+  ROUTES = {}
+  def __init__(self, path: str = "/"):
+    self.path = path
+  
+  def route(self, path: str = "/"):
+    assert path.startswith("/"), ValueError("Path must start with '/'")
+    def decorator(func):
+      self.ROUTES[path] = func
+      return func
+      
+    return decorator
+    
+  def map_routes(self):
+    resp = {}
+    path = self.path.rstrip("/")
+    for p, c in self.ROUTES.items():
+      if isinstance(c, Route):
+        resp.update(c.map_routes())
+      else:
+        resp[path+p] = c
+      
+    return resp
+    
+  def subroute(self, path: str, route: "Route" = None):
+    route=route or self.__class__(path)
+    self.ROUTES[path] = route
+    return route
 
 def serve_pages_dev(routes: Dict[str, Union[Page, Callable[[], Page]]], port: int = 8000, project_root: str = None):
+    route, routes = routes, {}
+    for p, c in route.items():
+      if isinstance(c, Route):
+        routes.update(c.map_routes())
+      else: routes[p] = c
+        
     if project_root is None:
         original_cwd = os.getcwd()
         current_script_dir = os.path.dirname(os.path.abspath(__file__))
