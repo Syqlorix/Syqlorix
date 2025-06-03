@@ -5,7 +5,7 @@ from .components import component
 from .components_lib import SimpleAlert, ImageGallery # 0.0.2.4
 from .loader import load_component # 0.0.2.4
 
-__version__ = "0.0.2.5"
+__version__ = "0.0.2.6"
 
 __all__ = [
     "Page", 

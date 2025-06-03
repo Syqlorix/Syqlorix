@@ -108,8 +108,8 @@ class Page:
                 if html_tag_name in {"div", "ul", "ol", "p", "span", "h1", "h2", "h3", "h4", "h5", "h6",
                                     "form", "table", "tr", "td", "th", "header", "footer", "nav", "article",
                                     "section", "aside", "main", "figure", "figcaption", "fieldset", "legend",
-                                    "details", "summary", "a", "button", "textarea", "label",
-                                    "audio", "video", "canvas"}: # Added media elements here
+                                    "details", "summary", "button", "textarea", "label",
+                                    "audio", "video", "canvas", "select"}:
                     return _ElementContext(self, new_element)
                 else:
                     return new_element
