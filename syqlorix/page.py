@@ -223,7 +223,7 @@ class Page:
         self._current_parent.add_child(select_elem)
         return _ElementContext(self, select_elem)
 
-    def validate_form_script(self, form_id: str, fields: Dict[str, Dict[str, Any]]):
+    def number_input(self, name: str, value: Union[int, float] = None, **attrs):
         """
         Adds a robust client-side JavaScript validation script for a form.
         It displays inline error messages in spans with IDs like '<field_name>-error'.
@@ -259,12 +259,12 @@ class Page:
                 input.classList.remove('is-invalid');
             }}
 
-            const form = document.getElementById('{form_id}');
+            const form = document.getElementById('{name}');
             if (!form) return;
 
             form.addEventListener('submit', function(event) {{
                 let isValid = true;
-                const fieldDefinitions = {json.dumps(fields)};
+                const fieldDefinitions = {json.dumps(name)};
 
                 for (const fieldNameKey in fieldDefinitions) {{
                     const fieldRules = fieldDefinitions[fieldNameKey];
