@@ -18,7 +18,7 @@ def common_header(page_instance: Page, current_route: str = "/"):
 
 @component 
 def common_footer(page_instance: Page):
-    page_instance.footer(f"© {datetime.datetime.now().year} Syqlorix Demo Site. Version 0.0.2.4")
+    page_instance.footer(f"© {datetime.datetime.now().year} Syqlorix Demo Site. Version 0.0.2.5")
 
 
 base_styles_dict = {
