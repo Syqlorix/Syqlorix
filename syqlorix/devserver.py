@@ -94,7 +94,7 @@ class SyqlorixDevServerHandler(http.server.BaseHTTPRequestHandler):
                 return
 
             self.send_response(200)
-            self.send_header("Content-type", "text/html")
+            self.send_header("Content-type", "text/html; charset=utf-8")
             self.end_headers()
             self.wfile.write(html_content.encode("utf-8"))
         elif path.startswith('/static/'):

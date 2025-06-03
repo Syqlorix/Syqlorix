@@ -18,7 +18,7 @@ def common_header(page_instance: Page, current_route: str = "/"):
 
 @component 
 def common_footer(page_instance: Page):
-    page_instance.footer(f"© {datetime.datetime.now().year} Syqlorix Demo Site. Version 0.0.2.5")
+        page_instance.footer(f"© {datetime.datetime.now().year} Syqlorix Demo Site. Version 0.0.2.6")
 
 
 base_styles_dict = {
@@ -94,6 +94,18 @@ base_styles_dict = {
         "border": "1px solid #ccc",
         "display": "block",
         "margin_top": "10px"
+    },
+    ".custom-loaded-btn": {
+        "background_color": "#6f42c1", # Purple
+        "color": "white",
+        "border": "none",
+        "padding": "10px 20px",
+        "border_radius": "5px",
+        "cursor": "pointer",
+        "transition": "background-color 0.3s ease"
+    },
+    ".custom-loaded-btn:hover": {
+        "background_color": "#563d7c"
     }
 }
 base_styles = css(**base_styles_dict)
