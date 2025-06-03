@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ask a question
+    url: https://github.com/Syqlorix/Syqlorix/discussions
+    about: Ask and answer questions with other community members.
+  - name: Report a security vulnerability
+    url: https://github.com/Syqlorix/Syqlorix/security/policy
+    about: Please report security vulnerabilities responsibly.
