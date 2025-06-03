@@ -1,4 +1,8 @@
 from syqlorix import Page, component, css
+from typing import List
+
+from syqlorix import Page, component, css
+from typing import List
 
 @component
 def SimpleAlert(page_instance: Page, message: str, type: str = "info"):
@@ -31,14 +35,14 @@ def SimpleAlert(page_instance: Page, message: str, type: str = "info"):
             "border": "1px solid #ebccd1"
         }
     }
-    alert_styles = css(**alert_rules) # Unpack the dictionary here
+    alert_styles = css(**alert_rules)
     page_instance.style(alert_styles)
 
     page_instance.div(message, _class=f"alert-box alert-{type}")
 
 @component
-def ImageGallery(page_instance: Page, images: list[str], _class: str = "", **attrs):
-    gallery_rules = { # Define the dictionary separately
+def ImageGallery(page_instance: Page, images: List[str], _class: str = "", **attrs): # fixed for ver 3.8 
+    gallery_rules = {
         ".image-gallery": {
             "display": "grid",
             "grid_template_columns": "repeat(auto-fit, minmax(150px, 1fr))",
@@ -53,7 +57,7 @@ def ImageGallery(page_instance: Page, images: list[str], _class: str = "", **att
             "object_fit": "cover"
         }
     }
-    gallery_styles = css(**gallery_rules) # Unpack the dictionary here
+    gallery_styles = css(**gallery_rules)
     page_instance.style(gallery_styles)
 
     with page_instance.div(_class=f"image-gallery {_class}" if _class else "image-gallery", **attrs):
