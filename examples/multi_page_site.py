@@ -1,4 +1,4 @@
-from syqlorix import Page, css, component, Route, SimpleAlert, ImageGallery, load_component # Import new features
+from syqlorix import Page, css, component, Route, SimpleAlert, ImageGallery, load_component
 import datetime
 import os
 
@@ -18,7 +18,7 @@ def common_header(page_instance: Page, current_route: str = "/"):
 
 @component 
 def common_footer(page_instance: Page):
-        page_instance.footer(f"© {datetime.datetime.now().year} Syqlorix Demo Site. Version 0.0.2.6")
+        page_instance.footer(f"© {datetime.datetime.now().year} Syqlorix Demo Site. Version 0.0.3.0")
 
 
 base_styles_dict = {
@@ -67,7 +67,7 @@ base_styles_dict = {
         "margin_bottom": "5px",
         "font_weight": "bold"
     },
-    "form input[type='text'], form input[type='password'], form input[type='email'], form input[type='number'], form textarea, form select": {
+    "form input[type='text'], form input[type='password'], form input[type='email'], form input[type='number'], form textarea, form select, form input[type='date'], form input[type='range']": {
         "width": "calc(100% - 22px)",
         "padding": "10px",
         "margin_bottom": "15px",
@@ -106,6 +106,16 @@ base_styles_dict = {
     },
     ".custom-loaded-btn:hover": {
         "background_color": "#563d7c"
+    },
+    ".validation-error": {
+        "color": "red",
+        "font_size": "0.9em",
+        "margin_top": "-10px",
+        "margin_bottom": "10px",
+        "display": "block"
+    },
+    "input.is-invalid, textarea.is-invalid, select.is-invalid": {
+        "border_color": "red !important"
     }
 }
 base_styles = css(**base_styles_dict)
@@ -122,7 +132,7 @@ def home_page_callable() -> Page:
         page.add_component(common_header, current_route="/")
         with page.main():
             page.h1("Welcome to Syqlorix Site!")
-            page.add_component(SimpleAlert, "This is an info alert from a pre-defined component!", type="info") # NEW
+            page.add_component(SimpleAlert, "This is an info alert from a pre-defined component!", type="info")
             page.p("This is the home page. Explore the new features!")
             page.p("This page links to an external CSS file: `static/css/main.css`.")
             page.p("The header and footer are reusable Python components.")
@@ -143,7 +153,7 @@ def about_page_callable() -> Page:
             page.h1("About Our Project")
             page.p("Syqlorix is an amazing Python DSL for web development.")
             page.p("It aims to simplify creating web interfaces directly in Python.")
-            page.add_component(SimpleAlert, "This is a warning alert!", type="warning") # NEW
+            page.add_component(SimpleAlert, "This is a warning alert!", type="warning")
         page.add_component(common_footer)
     return page
 
@@ -202,6 +212,12 @@ def forms_page_callable() -> Page:
                 page.label("Quantity:", _for="qty")
                 page.number_input(name="qty", id="qty", value=1, min=1, max=10)
                 
+                page.label("Date:", _for="event_date")
+                page.date_input(name="event_date", id="event_date")
+                
+                page.label("Volume (0-100):", _for="volume")
+                page.range_input(name="volume", id="volume", value=50, min_val=0, max_val=100, step=10)
+
                 page.label("Your Message:", _for="message")
                 with page.textarea(name="message", id="message", rows=5, placeholder="Type your message here"):
                     page.raw("Optional initial message content.")
@@ -230,9 +246,9 @@ def forms_page_callable() -> Page:
     page.validate_form_script(
         form_id="myForm",
         fields={
-            "username": {"required": True, "minlength": 3, "pattern": "^[a-zA-Z0-9]+$"},
-            "email": {"required": True, "type": "email"},
-            "password": {"required": True, "minlength": 8},
+            "username": {"required": True, "minlength": 3, "pattern": "^[a-zA-Z0-9]+$", "message": "Username must be alphanumeric (min 3 chars)."},
+            "email": {"required": True, "type": "email", "message": "Please enter a valid email address."},
+            "password": {"required": True, "minlength": 8, "message": "Password must be at least 8 characters."},
         }
     )
     return page
@@ -281,7 +297,7 @@ def CustomButtonComponent(page_instance: Page, text: str = "Loaded Button", **at
 
             page.h2("Pre-defined Components")
             page.add_component(SimpleAlert, "This is a success alert from `components_lib`!", type="success")
-            page.add_component(ImageGallery, images=["/static/img/img1.png", "/static/img/img2.png"]) # changed to local image so it'll be easier to know when we have some issue
+            page.add_component(ImageGallery, images=["/static/img/img1.png", "/static/img/img2.png"])
             
             page.h2("Dynamically Loaded Component")
             page.add_component(CustomButtonComponent, "I'm a Loaded Button!")

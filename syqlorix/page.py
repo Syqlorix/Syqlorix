@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Callable, Any, Union, Dict
+from typing import Callable, Any, Union, Dict, List
 
 from .utils import escape_html, format_attrs
 from .components import component 
@@ -169,15 +169,35 @@ class Page:
         input_attrs.update(attrs)
         return self.input(**input_attrs)
 
+    def date_input(self, name: str, value: str = None, **attrs):
+        input_attrs = {"type": "date", "name": name}
+        if value is not None:
+            input_attrs["value"] = value
+        input_attrs.update(attrs)
+        return self.input(**input_attrs)
+
+    def range_input(self, name: str, value: Union[int, float] = None, min_val: Union[int, float] = None, max_val: Union[int, float] = None, step: Union[int, float] = None, **attrs):
+        input_attrs = {"type": "range", "name": name}
+        if value is not None:
+            input_attrs["value"] = value
+        if min_val is not None:
+            input_attrs["min"] = min_val
+        if max_val is not None:
+            input_attrs["max"] = max_val
+        if step is not None:
+            input_attrs["step"] = step
+        input_attrs.update(attrs)
+        return self.input(**input_attrs)
+
     def checkbox(self, name: str, value: str, checked: bool = False, **attrs):
-        input_attrs = {"type": "checkbox", "name": name, "value": value}
+        input_attrs = {"type": "checkbox", "name": name}
         if checked:
             input_attrs["checked"] = True
         input_attrs.update(attrs)
         return self.input(**input_attrs)
 
     def radio(self, name: str, value: str, checked: bool = False, **attrs):
-        input_attrs = {"type": "radio", "name": name, "value": value}
+        input_attrs = {"type": "radio", "name": name}
         if checked:
             input_attrs["checked"] = True
         input_attrs.update(attrs)
@@ -205,23 +225,45 @@ class Page:
 
     def validate_form_script(self, form_id: str, fields: Dict[str, Dict[str, Any]]):
         """
-        Adds a basic client-side JavaScript validation function for a form.
+        Adds a robust client-side JavaScript validation script for a form.
+        It displays inline error messages in spans with IDs like '<field_name>-error'.
+
         Fields dictionary example:
         {
-            "username": {"required": True, "minlength": 3, "pattern": "[a-zA-Z0-9]+"},
-            "email": {"required": True, "type": "email"},
-            "password": {"required": True, "minlength": 8},
+            "username": {"required": True, "minlength": 3, "pattern": "[a-zA-Z0-9]+$", "message": "Username must be alphanumeric (3+ chars)"},
+            "email": {"required": True, "type": "email", "message": "Please enter a valid email address."},
+            "password": {"required": True, "minlength": 8, "message": "Password must be at least 8 characters."},
         }
         """
         validation_script = f"""
-        document.addEventListener('DOMContentLoaded', function() {{
+        (function() {{ // IIFE to prevent global scope pollution
+            function displayError(input, message) {{
+                const errorElementId = input.id + '-error';
+                let errorElement = document.getElementById(errorElementId);
+                if (!errorElement) {{
+                    errorElement = document.createElement('span');
+                    errorElement.id = errorElementId;
+                    errorElement.className = 'validation-error';
+                    input.parentNode.insertBefore(errorElement, input.nextSibling);
+                }}
+                errorElement.textContent = message;
+                input.classList.add('is-invalid');
+            }}
+
+            function clearError(input) {{
+                const errorElementId = input.id + '-error';
+                const errorElement = document.getElementById(errorElementId);
+                if (errorElement) {{
+                    errorElement.textContent = '';
+                }}
+                input.classList.remove('is-invalid');
+            }}
+
             const form = document.getElementById('{form_id}');
             if (!form) return;
 
             form.addEventListener('submit', function(event) {{
                 let isValid = true;
-                const errors = [];
-
                 const fieldDefinitions = {json.dumps(fields)};
 
                 for (const fieldNameKey in fieldDefinitions) {{
@@ -231,54 +273,64 @@ class Page:
                     if (!input) continue;
 
                     let fieldValue = input.value.trim();
+                    let errorMessage = fieldRules.message || `Invalid input for '${{fieldNameKey}}'.`; // Fix: Escaped fieldNameKey
+
+                    clearError(input);
 
                     // Required check
                     if (fieldRules.required && fieldValue === '') {{
                         isValid = false;
-                        errors.push(`Field '${{fieldNameKey}}' is required.`); // Escape JS variable
-                        input.style.borderColor = 'red';
+                        displayError(input, fieldRules.message || `This field is required.`);
                         continue;
-                    }} else {{
-                        input.style.borderColor = '';
                     }}
 
                     // MinLength check
-                    if (fieldRules.minlength && fieldValue.length < fieldRules.minlength) {{
+                    if (fieldRules.minlength && fieldValue.length < fieldRules.minlength && fieldValue !== '') {{
                         isValid = false;
-                        errors.push(`Field '${{fieldNameKey}}' must be at least ${{fieldRules.minlength}} characters.`); // Escape JS variables
-                        input.style.borderColor = 'red';
+                        displayError(input, fieldRules.message || `Minimum length is ${{fieldRules.minlength}} characters.`); // Fix: Escaped fieldRules.minlength
                     }}
 
                     // Pattern check
-                    if (fieldRules.pattern) {{
+                    if (fieldRules.pattern && fieldValue !== '') {{
                         const regex = new RegExp(fieldRules.pattern);
                         if (!regex.test(fieldValue)) {{
                             isValid = false;
-                            errors.push(`Field '${{fieldNameKey}}' format is invalid.`); // Escape JS variable
-                            input.style.borderColor = 'red';
+                            displayError(input, fieldRules.message || `Invalid format.`);
                         }}
                     }}
 
-                    // Type check (for email, etc.)
+                    // Type check (for email)
                     if (fieldRules.type === 'email' && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(fieldValue) && fieldValue !== '') {{
                          isValid = false;
-                         errors.push(`Field '${{fieldNameKey}}' must be a valid email address.`); // Escape JS variable
-                         input.style.borderColor = 'red';
+                         displayError(input, fieldRules.message || `Please enter a valid email.`);
                     }}
                 }}
 
                 if (!isValid) {{
                     event.preventDefault();
-                    alert('Validation Errors:\\n' + errors.join('\\n'));
                 }} else {{
                     event.preventDefault();
                     alert('Form is valid! (Submission would proceed in a real app)');
                 }}
             }});
-        }});
+
+            // Add input event listeners for real-time clearing of errors
+            for (const fieldNameKey in fields) {{
+                const input = form.elements[fieldNameKey];
+                if (input) {{
+                    input.addEventListener('input', function() {{
+                        clearError(input);
+                    }});
+                    input.addEventListener('change', function() {{
+                        clearError(input);
+                    }});
+                }}
+            }}
+        }})();
         """
         self.script(validation_script)
 
+    # --- Component Integration Method ---
     def add_component(self, component_func: Callable, *args, **kwargs):
         if not hasattr(component_func, '_is_syqlorix_component') or not component_func._is_syqlorix_component:
             raise TypeError(f"'{component_func.__name__}' is not a valid Syqlorix component. "

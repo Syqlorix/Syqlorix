@@ -46,6 +46,8 @@ For comprehensive examples and detailed usage instructions, please refer to the 
     *   `page.password_input(name, ...)`
     *   `page.email_input(name, ...)`
     *   `page.number_input(name, ...)`
+    *   `page.date_input(name, ...)` (NEW)
+    *   `page.range_input(name, ...)` (NEW)
     *   `page.checkbox(name, value, ...)`
     *   `page.radio(name, value, ...)`
     *   `page.textarea(name, ...)`
@@ -53,7 +55,7 @@ For comprehensive examples and detailed usage instructions, please refer to the 
     *   `page.option(text, value, ...)`
     *   `page.label(text, _for, ...)`
     *   `page.submit_button(text, ...)`
-*   **Client-Side Form Validation**: `page.validate_form_script(form_id, fields)` generates basic, zero-dependency JavaScript for form validation.
+*   **Client-Side Form Validation**: `page.validate_form_script(form_id, fields)` generates robust, zero-dependency JavaScript for inline error display and custom messages.
 *   **Media Element Helpers**: Methods for `<audio>`, `<video>`, `<canvas>`, `<source>`, and `<track>` tags.
 *   **Pre-defined Components**: Reusable components like `syqlorix.SimpleAlert(...)` and `syqlorix.ImageGallery(...)` for common UI patterns.
 *   **Component Loading**: `syqlorix.load_component(file_path, component_name)` allows loading components dynamically from separate Python files.
@@ -61,6 +63,7 @@ For comprehensive examples and detailed usage instructions, please refer to the 
     *   `main_router = syqlorix.Route("/")`: Initialize a router instance.
     *   `@main_router.route("/path")`: Decorator to map Python functions (which return `Page` objects) to URL paths.
     *   `router.subroute(sub_router)`: Nest router instances for modular routing.
+*   **Server-Side Form Parsing**: `syqlorix.parse_form_urlencoded(data_string)` utility for zero-dependency parsing of form submissions.
 *   `page.render()` -> Outputs the full HTML page string including `<!DOCTYPE html>`.
 *   `syqlorix serve <routes_file.py>` -> CLI command to start a multi-page development server, serving pages and static assets from the project root, providing a clickable link and auto-detection in Codespaces.
 *   `syqlorix build <routes_file.py> -o <output_dir>` -> CLI command to generate a static site from a routes file, including copying static assets.
@@ -79,11 +82,7 @@ Syqlorix is an invented word, providing a unique word for the project. Its tech-
 
 ## Future Directions
 
-*   More robust form validation features (e.g., custom validation rules, error message display).
-*   Integrated support for more complex UI elements (e.g., date pickers, sliders).
-*   Accessibility (ARIA attributes, semantic HTML helpers).
-*   Server-side form handling utilities (though mindful of zero-dependency core).
-*   (You're free to suggest more ideas!)
+*   Nothing from now (You're free to suggest more ideas!)
 
 ## Get Started (Local Installation)
 
