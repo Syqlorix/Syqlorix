@@ -1,5 +1,6 @@
 import os
-from typing import Callable, Any, Union
+import json
+from typing import Callable, Any, Union, Dict
 
 from .utils import escape_html, format_attrs
 from .components import component 
@@ -47,12 +48,18 @@ class Page:
         "meta", "link", "base", "title",
         "textarea",
         "label",
-
+        "audio",
+        "video",
+        "canvas",
+        "source",
+        "track",
     }
     RETURN_ONLY_TAGS = {
         "li",
-        "col", "param", "source", "track",
+        "col", "param",
         "option",
+        "source",
+        "track",
     }
 
     def __init__(self, title: str = ""):
@@ -101,7 +108,8 @@ class Page:
                 if html_tag_name in {"div", "ul", "ol", "p", "span", "h1", "h2", "h3", "h4", "h5", "h6",
                                     "form", "table", "tr", "td", "th", "header", "footer", "nav", "article",
                                     "section", "aside", "main", "figure", "figcaption", "fieldset", "legend",
-                                    "details", "summary", "a", "button", "textarea", "label"}:
+                                    "details", "summary", "a", "button", "textarea", "label",
+                                    "audio", "video", "canvas"}: # Added media elements here
                     return _ElementContext(self, new_element)
                 else:
                     return new_element
@@ -183,10 +191,6 @@ class Page:
         return self.button(text, **button_attrs)
 
     def select(self, *content, **attrs):
-        """
-        Creates a <select> element and returns it as a context manager.
-        This explicitly makes page.select() a context manager.
-        """
         select_elem = _Element("select", attrs)
         for item in content:
             if isinstance(item, _Element):
@@ -198,6 +202,82 @@ class Page:
         
         self._current_parent.add_child(select_elem)
         return _ElementContext(self, select_elem)
+
+    def validate_form_script(self, form_id: str, fields: Dict[str, Dict[str, Any]]):
+        """
+        Adds a basic client-side JavaScript validation function for a form.
+        Fields dictionary example:
+        {
+            "username": {"required": True, "minlength": 3, "pattern": "[a-zA-Z0-9]+"},
+            "email": {"required": True, "type": "email"},
+            "password": {"required": True, "minlength": 8},
+        }
+        """
+        validation_script = f"""
+        document.addEventListener('DOMContentLoaded', function() {{
+            const form = document.getElementById('{form_id}');
+            if (!form) return;
+
+            form.addEventListener('submit', function(event) {{
+                let isValid = true;
+                const errors = [];
+
+                const fieldDefinitions = {json.dumps(fields)};
+
+                for (const fieldNameKey in fieldDefinitions) {{
+                    const fieldRules = fieldDefinitions[fieldNameKey];
+
+                    const input = form.elements[fieldNameKey];
+                    if (!input) continue;
+
+                    let fieldValue = input.value.trim();
+
+                    // Required check
+                    if (fieldRules.required && fieldValue === '') {{
+                        isValid = false;
+                        errors.push(`Field '${{fieldNameKey}}' is required.`); // Escape JS variable
+                        input.style.borderColor = 'red';
+                        continue;
+                    }} else {{
+                        input.style.borderColor = '';
+                    }}
+
+                    // MinLength check
+                    if (fieldRules.minlength && fieldValue.length < fieldRules.minlength) {{
+                        isValid = false;
+                        errors.push(`Field '${{fieldNameKey}}' must be at least ${{fieldRules.minlength}} characters.`); // Escape JS variables
+                        input.style.borderColor = 'red';
+                    }}
+
+                    // Pattern check
+                    if (fieldRules.pattern) {{
+                        const regex = new RegExp(fieldRules.pattern);
+                        if (!regex.test(fieldValue)) {{
+                            isValid = false;
+                            errors.push(`Field '${{fieldNameKey}}' format is invalid.`); // Escape JS variable
+                            input.style.borderColor = 'red';
+                        }}
+                    }}
+
+                    // Type check (for email, etc.)
+                    if (fieldRules.type === 'email' && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(fieldValue) && fieldValue !== '') {{
+                         isValid = false;
+                         errors.push(`Field '${{fieldNameKey}}' must be a valid email address.`); // Escape JS variable
+                         input.style.borderColor = 'red';
+                    }}
+                }}
+
+                if (!isValid) {{
+                    event.preventDefault();
+                    alert('Validation Errors:\\n' + errors.join('\\n'));
+                }} else {{
+                    event.preventDefault();
+                    alert('Form is valid! (Submission would proceed in a real app)');
+                }}
+            }});
+        }});
+        """
+        self.script(validation_script)
 
     def add_component(self, component_func: Callable, *args, **kwargs):
         if not hasattr(component_func, '_is_syqlorix_component') or not component_func._is_syqlorix_component:
