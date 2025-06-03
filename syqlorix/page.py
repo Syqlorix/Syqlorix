@@ -108,7 +108,7 @@ class Page:
                 if html_tag_name in {"div", "ul", "ol", "p", "span", "h1", "h2", "h3", "h4", "h5", "h6",
                                     "form", "table", "tr", "td", "th", "header", "footer", "nav", "article",
                                     "section", "aside", "main", "figure", "figcaption", "fieldset", "legend",
-                                    "details", "summary", "button", "textarea", "label",
+                                    "details", "summary", "a", "button", "textarea", "label",
                                     "audio", "video", "canvas", "select"}:
                     return _ElementContext(self, new_element)
                 else:
@@ -223,7 +223,7 @@ class Page:
         self._current_parent.add_child(select_elem)
         return _ElementContext(self, select_elem)
 
-    def number_input(self, name: str, value: Union[int, float] = None, **attrs):
+    def validate_form_script(self, form_id: str, fields: Dict[str, Dict[str, Any]]):
         """
         Adds a robust client-side JavaScript validation script for a form.
         It displays inline error messages in spans with IDs like '<field_name>-error'.
@@ -243,11 +243,11 @@ class Page:
                 if (!errorElement) {{
                     errorElement = document.createElement('span');
                     errorElement.id = errorElementId;
-                    errorElement.className = 'validation-error';
-                    input.parentNode.insertBefore(errorElement, input.nextSibling);
+                    errorElement.className = 'validation-error'; // Add a class for styling
+                    input.parentNode.insertBefore(errorElement, input.nextSibling); // Insert after input
                 }}
                 errorElement.textContent = message;
-                input.classList.add('is-invalid');
+                input.classList.add('is-invalid'); // Add class to input for styling
             }}
 
             function clearError(input) {{
@@ -259,12 +259,12 @@ class Page:
                 input.classList.remove('is-invalid');
             }}
 
-            const form = document.getElementById('{name}');
+            const form = document.getElementById('{form_id}');
             if (!form) return;
 
             form.addEventListener('submit', function(event) {{
                 let isValid = true;
-                const fieldDefinitions = {json.dumps(name)};
+                const fieldDefinitions = {json.dumps(fields)};
 
                 for (const fieldNameKey in fieldDefinitions) {{
                     const fieldRules = fieldDefinitions[fieldNameKey];
@@ -273,7 +273,7 @@ class Page:
                     if (!input) continue;
 
                     let fieldValue = input.value.trim();
-                    let errorMessage = fieldRules.message || `Invalid input for '${{fieldNameKey}}'.`; // Fix: Escaped fieldNameKey
+                    let errorMessage = fieldRules.message || `Invalid input for '${{fieldNameKey}}'.`;
 
                     clearError(input);
 
@@ -287,7 +287,7 @@ class Page:
                     // MinLength check
                     if (fieldRules.minlength && fieldValue.length < fieldRules.minlength && fieldValue !== '') {{
                         isValid = false;
-                        displayError(input, fieldRules.message || `Minimum length is ${{fieldRules.minlength}} characters.`); // Fix: Escaped fieldRules.minlength
+                        displayError(input, fieldRules.message || `Minimum length is ${{fieldRules.minlength}} characters.`);
                     }}
 
                     // Pattern check

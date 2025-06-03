@@ -19,11 +19,6 @@ def format_attrs(attrs: dict) -> str:
     return " ".join(attr_parts)
 
 def parse_form_urlencoded(data: str) -> Dict[str, Union[str, List[str]]]:
-    """
-    Parses application/x-www-form-urlencoded string into a dictionary.
-    Values are decoded from URL encoding. If a key has multiple values,
-    it returns a list; otherwise, a single string.
-    """
     parsed_data = urllib.parse.parse_qs(data)
     result = {}
     for key, values in parsed_data.items():
