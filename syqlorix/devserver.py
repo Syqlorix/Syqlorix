@@ -4,7 +4,7 @@ import socketserver
 import threading
 import time
 import importlib.util
-import mimetypes
+import mimetypes 
 from typing import Callable, Dict, Union, Any
 
 from .page import Page
@@ -98,8 +98,7 @@ class SyqlorixDevServerHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(html_content.encode("utf-8"))
         elif path.startswith('/static/'):
-            # Manually serve static files
-            requested_file_relative_path = path[len('/static/'):] # e.g., 'css/main.css' from '/static/css/main.css'
+            requested_file_relative_path = path[len('/static/'):] 
             full_static_file_path = os.path.join(self.static_source_directory, requested_file_relative_path)
             
             if os.path.exists(full_static_file_path) and os.path.isfile(full_static_file_path):
@@ -145,14 +144,26 @@ def start_dev_server(routes_source: Union[Dict[str, Union[Page, Callable[[], Pag
         raise TypeError("routes_source must be a dictionary of routes or a Route instance.")
         
     if project_root is None:
-        try:
-            syqlorix_pkg_path = os.path.dirname(importlib.import_module('syqlorix').__file__)
-            project_root = os.path.dirname(syqlorix_pkg_path)
-        except Exception:
-            current_script_dir = os.path.dirname(os.path.abspath(__file__))
-            project_root = os.path.dirname(os.path.dirname(current_script_dir))
+        current_candidate_path = os.path.abspath(os.getcwd())
+        while current_candidate_path != os.path.dirname(current_candidate_path):
+            if os.path.exists(os.path.join(current_candidate_path, 'pyproject.toml')):
+                project_root = current_candidate_path
+                break
+            current_candidate_path = os.path.dirname(current_candidate_path)
+        
+        if project_root is None:
+            try:
+                syqlorix_pkg_path = os.path.dirname(importlib.import_module('syqlorix').__file__)
+                project_root = os.path.dirname(syqlorix_pkg_path)
+            except Exception:
+                current_script_dir = os.path.dirname(os.path.abspath(__file__))
+                project_root = os.path.dirname(os.path.dirname(current_script_dir))
+
         if not os.path.exists(os.path.join(project_root, 'static')):
-            project_root = os.path.abspath(os.getcwd())
+            if os.path.exists(os.path.join(os.path.abspath(os.getcwd()), 'static')):
+                 project_root = os.path.abspath(os.getcwd())
+            else:
+                pass
 
         original_cwd = os.getcwd()
     else:
@@ -183,15 +194,19 @@ def start_dev_server(routes_source: Union[Dict[str, Union[Page, Callable[[], Pag
     print(f"   Main page: http://{bind}:{port}/")
     print("="*50 + "\n")
     print("Press Enter to close the server and exit...")
-    input()
-
-    if 'httpd' in server_instance_holder and server_instance_holder['httpd']:
-        print("Shutting down Syqlorix Dev Server...")
-        server_instance_holder['httpd'].shutdown()
-        server_instance_holder['httpd'].server_close()
     
-    server_thread.join(timeout=1)
+    try:
+        input()
+    except KeyboardInterrupt:
+        print("\nKeyboardInterrupt detected. Shutting down server...")
+    finally:
+        if 'httpd' in server_instance_holder and server_instance_holder['httpd']:
+            print("Shutting down Syqlorix Dev Server...")
+            server_instance_holder['httpd'].shutdown()
+            server_instance_holder['httpd'].server_close()
+        
+        server_thread.join(timeout=1)
 
-    if 'original_cwd' in locals():
-        os.chdir(original_cwd)
-    print("Server closed. Goodbye!")
+        if 'original_cwd' in locals():
+            os.chdir(original_cwd)
+        print("Server closed. Goodbye!")

@@ -119,7 +119,10 @@ def main():
         else:
             raise TypeError(f"Routes source in '{args.routes_file}' is invalid. Must be 'routes' dictionary or 'main_router' Route instance.")
         
-        start_dev_server(routes_source, bind=args.bind, port=args.port, project_root=PROJECT_ROOT)
+        try:
+            start_dev_server(routes_source, bind=args.bind, port=args.port, project_root=PROJECT_ROOT)
+        except KeyboardInterrupt:
+            print("\nServer gracefully shut down by CLI.")
     elif args.command == "build":
         build_static_site(args.routes_file, args.output)
     else:
