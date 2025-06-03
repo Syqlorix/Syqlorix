@@ -41,7 +41,7 @@ We appreciate code contributions that help make Syqlorix better!
     ```
     (For bug fixes, use  or .)
 4.  **Install development dependencies:**
-    ```bash
+   ```bash
     pip install -e .[dev]
   Installing build dependencies: started
   Installing build dependencies: finished with status 'done'
@@ -63,7 +63,7 @@ Installing collected packages: syqlorix
     Uninstalling syqlorix-0.0.2.4:
       Successfully uninstalled syqlorix-0.0.2.4
 Successfully installed syqlorix-0.0.2.5
-    ```
+```
 5.  **Make your changes.**
 6.  **Write tests** for your changes. Ensure existing tests still pass.
     ```bash
