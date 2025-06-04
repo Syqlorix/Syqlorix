@@ -8,6 +8,7 @@ import mimetypes
 from typing import Callable, Dict, Union, Any
 
 from .page import Page
+from .request import set_request, request, Request, clear_request
 
 class Route:
     def __init__(self, path: str = "/"):
@@ -80,7 +81,9 @@ class SyqlorixDevServerHandler(http.server.BaseHTTPRequestHandler):
             page_source = self.routes_map[path]
             try:
                 if callable(page_source):
+                    set_request(path=self.path)
                     page_source = page_source()
+                    clear_request()
                 if isinstance(page_source, Page):
                     html_content = page_source.render()
                 elif isinstance(page_source, str):

@@ -4,6 +4,7 @@ from .css import css
 from .components import component
 from .components_lib import SimpleAlert, ImageGallery
 from .loader import load_component
+from .request import request
 
 __version__ = "0.0.3.3"
 
@@ -16,4 +17,5 @@ __all__ = [
     "SimpleAlert",
     "ImageGallery",
     "load_component",
+    "request",
 ]
