@@ -42,7 +42,7 @@ index.html
 
 # Static assets directory (for source, comment out or adjust)
 # static/
-# public/       Now excluded this for testing examples in other devices  
+# public/       Now excluded this for testing examples in other devices while git cloning
 # dist_static/
 
 MANIFEST.in
