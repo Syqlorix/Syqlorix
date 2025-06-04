@@ -41,8 +41,8 @@ index.html
 .flaskenv
 
 # Static assets directory (for source, comment out or adjust)
-static/
-public/ # New for build output
-dist_static/ # For alternative build output
+# static/
+# public/       Now excluded this for testing examples in other devices  
+# dist_static/
 
 MANIFEST.in
