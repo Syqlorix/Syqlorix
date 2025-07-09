@@ -185,13 +185,13 @@ class Syqlorix(Node):
             html_string = html_string.replace("</body>", f"{script_tag}</body>")
         return html_string
 
-    def _live_reload_manager(self, host, ws_port, file_to_watch):
+    def _live_reload_manager(self, host, ws_port, watch_dirs):
         try:
-            asyncio.run(self._async_live_reload(host, ws_port, file_to_watch))
+            asyncio.run(self._async_live_reload(host, ws_port, watch_dirs))
         except KeyboardInterrupt:
             pass
 
-    async def _async_live_reload(self, host, ws_port, file_to_watch):
+    async def _async_live_reload(self, host, ws_port, watch_dirs):
         active_sockets = set()
         stop_event = asyncio.Event()
 
@@ -204,8 +204,8 @@ class Syqlorix(Node):
 
         class ChangeHandler(FileSystemEventHandler):
             def on_modified(self, event):
-                if event.src_path == str(Path(file_to_watch).resolve()):
-                    print(f"✨ {C.WARNING}File changed. Triggering reload...{C.END}")
+                if not event.is_directory:
+                    print(f"✨ {C.WARNING}File changed ({event.src_path}). Triggering reload...{C.END}")
                     if active_sockets:
                         asyncio.create_task(asyncio.gather(*[ws.send("reload") for ws in active_sockets]))
         
@@ -213,9 +213,10 @@ class Syqlorix(Node):
         print(f"🛰️  {C.INFO}Syqlorix Live-Reload server listening on {C.BOLD}ws://{host}:{ws_port}{C.END}")
 
         observer = Observer()
-        observer.schedule(ChangeHandler(), path=str(Path(file_to_watch).parent.resolve()), recursive=False)
+        for watch_dir in watch_dirs:
+            observer.schedule(ChangeHandler(), path=str(watch_dir), recursive=True)
+            print(f"👀 {C.INFO}Watching for changes in {C.BOLD}'{watch_dir}' (recursively){C.END}")
         observer.start()
-        print(f"👀 {C.INFO}Watching for changes in {C.BOLD}'{file_to_watch}'{C.END}...")
 
         try:
             await stop_event.wait()
@@ -231,6 +232,13 @@ class Syqlorix(Node):
         http_server = None
 
         print(f"🔥 {C.PRIMARY}Starting server for {C.BOLD}{Path(file_path).name}{C.END}...")
+
+        project_root = Path(file_path).parent.resolve()
+        watch_dirs = [project_root] 
+
+        potential_static_dir = project_root / 'static'
+        if potential_static_dir.is_dir():
+            watch_dirs.append(potential_static_dir)
 
         for attempt in range(max_port_attempts):
             try:
@@ -248,7 +256,7 @@ class Syqlorix(Node):
                         syqlorix_app = self._app_instance
                         
                         # --- Static file handling ---
-                        static_dir = Path('./static')
+                        static_dir = project_root / 'static'
                         req_static_path_str = request.path_full.lstrip('/')
                         try:
                             resolved_static_path = (static_dir / req_static_path_str).resolve(strict=True)
@@ -353,7 +361,7 @@ class Syqlorix(Node):
         print(f"🚀 {C.SUCCESS}Syqlorix server running on {C.BOLD}http://{host}:{current_port}{C.END}")
 
         if live_reload:
-            reload_thread = threading.Thread(target=self._live_reload_manager, args=(host, self._live_reload_ws_port, file_path), daemon=True)
+            reload_thread = threading.Thread(target=self._live_reload_manager, args=(host, self._live_reload_ws_port, watch_dirs), daemon=True)
             reload_thread.start()
         
         if self._routes:

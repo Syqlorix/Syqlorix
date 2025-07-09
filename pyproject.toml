@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "syqlorix"
-version = "1.0.0"
+version = "1.0.2"
 description = "A hyper-minimalist Python DSL for generating HTML, CSS, and JS in a single file with live reload and dynamic routing."
 readme = "README.md"
 requires-python = ">=3.8"

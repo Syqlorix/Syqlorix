@@ -22,7 +22,7 @@ It is designed for developers who want to create web UIs and simple APIs without
 ## Key Features
 
 *   **Pure Python HTML:** Generate any HTML element using Python objects and operators.
-*   **Live Reload Server:** The dev server automatically reloads your browser on code changes.
+*   **Enhanced Live Reload Server:** The dev server automatically reloads your browser on code changes across your project, including files in the `static/` directory and your main Python script, enabling seamless multi-file development.
 *   **Dynamic Routing:** Create clean routes with variable paths (e.g., `/user/<username>`).
 *   **POST/GET Handling:** Easily handle different HTTP methods to process form data.
 *   **JSON API Responses:** Return a `dict` or `list` from a route to create an API endpoint.
@@ -67,6 +67,8 @@ Create a folder named `static` in your project directory. Any files inside it (e
 doc / img(src="/logo.png", alt="My Logo")
 doc / link(rel="stylesheet", href="/custom.css")
 ```
+
+*Changes to any files within the `static` directory (e.g., `custom.css`, `logo.png`) will automatically trigger a live reload in your browser.*
 
 ### Dynamic Routing
 
@@ -116,10 +118,11 @@ def health_check(request):
 Syqlorix comes with a simple and powerful CLI.
 
 *   #### `syqlorix init [filename]`
-    Creates a new project file with a helpful template to get you started. Defaults to `app.py`.
+    Creates a new project file with a helpful template to get you started. Automatically ensures the filename ends with `.py` (e.g., `syqlorix init my_app` creates `my_app.py`, `syqlorix init page.html` creates `page.html.py`). Defaults to `app.py`.
     ```bash
-    syqlorix init my_cool_app.py
+    syqlorix init my_cool_app
     ```
+    (This will create `my_cool_app.py`)
 
 *   #### `syqlorix run <file>`
     Runs the live-reloading development server. It will automatically find an open port if the default is busy.

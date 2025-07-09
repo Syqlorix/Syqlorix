@@ -171,13 +171,17 @@ def message_form(request):
 @main.command()
 @click.argument('filename', default='app.py', type=click.Path())
 def init(filename):
+    if not filename.endswith('.py'):
+        filename += '.py'
+
     if os.path.exists(filename):
         click.echo(f"{C.ERROR}Error: File '{filename}' already exists.{C.END}")
         return
     with open(filename, 'w') as f:
         f.write(INIT_TEMPLATE)
     click.echo(f"🚀 {C.SUCCESS}Created a new Syqlorix project in {C.BOLD}{filename}{C.END}.")
-    click.echo(f"   {C.MUTED}To run it, use: {C.PRIMARY}syqlorix run {filename}{C.END}")
+    run_command_filename = filename.split(os.sep)[-1]
+    click.echo(f"   {C.MUTED}To run it, use: {C.PRIMARY}syqlorix run {run_command_filename}{C.END}")
 
 if __name__ == '__main__':
     main()
