@@ -1,32 +1,24 @@
-# Byte-code files
+# Byte-code
 *.pyc
 __pycache__/
 
 # Distribution / packaging
-.Python
 build/
 dist/
 *.egg-info/
 .eggs/
-parts/
 sdist/
-var/
 *.whl
-*.mo
-*.pot
 
-# Caches
+# Caches and Virtual Environments
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .venv/
 venv/
 env/
-.env
-pip-log.txt
-pip-delete-this-directory.txt
 
-# Specific to Codespaces (or VS Code general)
+# IDE / Editor specific
 .vscode/
 .devcontainer/
 
@@ -34,15 +26,12 @@ pip-delete-this-directory.txt
 .DS_Store
 Thumbs.db
 
-# HTML output from examples
-index.html
+# Secrets
+.env
 
-# Flask specific (if using the Flask example)
-.flaskenv
+# Logs
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Static assets directory (for source, comment out or adjust)
-# static/
-# public/       Now excluded this for testing examples in other devices while git cloning
-# dist_static/
-
-MANIFEST.in
+# Generated HTML from examples
+*.html

@@ -1,107 +1,155 @@
 # Syqlorix: Build Hyper-Minimal Web Pages in Pure Python
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Syqlorix/Syqlorix/refs/heads/main/syqlorix-logo.svg" alt="Syqlorix Logo" width="250"/>
+  <img src="https://raw.githubusercontent.com/Syqlorix/Syqlorix/main/syqlorix-logo.svg" alt="Syqlorix Logo" width="250"/>
 </p>
 
 ## Overview
 
-**Syqlorix** is a futuristic Python package inspired by Flask and Dominate, designed to build full HTML documents—including **CSS** and **JavaScript**—from a **single Python script**. It offers a pure Python DSL (Domain-Specific Language) for authoring web interfaces, making it a single-file web page builder that is zero-dependency, readable, and easily embeddable for dynamic web content creation.
+**Syqlorix** is a hyper-minimalist Python package for building full HTML documents—including **CSS** and **JavaScript**—from a **single Python script**. It offers a pure Python DSL (Domain-Specific Language) for authoring web interfaces, with a built-in live-reloading server, dynamic routing, and a simple build process.
 
-## Goals & Design Philosophy
-
--   **Simpler than Dominate**
--   **More readable than raw HTML**
--   **No need for separate `.html`, `.css`, or `.js` files**
+It is designed for developers who want to create web UIs and simple APIs without leaving the comfort of Python.
 
 ### Core Design Principles
 
 *   **All-in-One**: Write entire pages in one `.py` file.
 *   **Minimal API**: Small surface area, quick to learn.
-*   **Super Readable**: Feels like Markdown, acts like HTML.
-*   **Framework-Ready**: Works seamlessly with Flask, Starlette, etc.
-*   **Tech-Aesthetic**: Feels modern, futuristic, efficient.
-
-## Example Usage
-
-For comprehensive examples and detailed usage instructions, please refer to the [Syqlorix Documentation Repository](https://github.com/Syqlorix/syqlorix.github.io).
+*   **Super Readable**: Feels like Python, acts like HTML.
+*   **Zero-Config**: Sensible defaults for instant productivity.
 
 ---
 
-## Key API Features
+## Key Features
 
-*   `Page(...)` -> Main class to construct a page.
-*   `page.h1()`, `page.div()`, `page.ul()` -> HTML tag functions.
-*   `with page.body:` -> Context-managed content creation for nesting.
-*   **Components**: Use the `@syqlorix.component` decorator to define reusable Python functions that build parts of your page. Integrate them using `page.add_component(my_component, *args, **kwargs)`.
-*   `page.style(css_str)` -> Add CSS inline within a `<style>` tag in the `<head>`.
-*   `syqlorix.css(**rules)` -> Programmatic CSS DSL to generate CSS strings from Python dictionaries.
-*   `page.link_css(href='...')` -> Add an external CSS file link to the `<head>`.
-*   `page.script(js_str)` -> Add JS inline within a `<script>` tag before `</body>`.
-*   `page.link_js(src='...')` -> Add an external JavaScript file link to the `</body>`.
-*   `page.meta(...)`, `page.link(...)`, `page.base(...)`, `page.title(...)` -> These tags can now be directly called on the `page` object and are automatically added to the `<head>`.
-*   `page.raw(html_content)` -> Inserts raw, unescaped HTML content directly into the page.
-*   **Form Helpers**: Specialized methods for common form elements:
-    *   `page.text_input(name, ...)`
-    *   `page.password_input(name, ...)`
-    *   `page.email_input(name, ...)`
-    *   `page.number_input(name, ...)`
-    *   `page.date_input(name, ...)` (NEW)
-    *   `page.range_input(name, ...)` (NEW)
-    *   `page.checkbox(name, value, ...)`
-    *   `page.radio(name, value, ...)`
-    *   `page.textarea(name, ...)`
-    *   `page.select(name, ...)` (context manager)
-    *   `page.option(text, value, ...)`
-    *   `page.label(text, _for, ...)`
-    *   `page.submit_button(text, ...)`
-*   **Client-Side Form Validation**: `page.validate_form_script(form_id, fields)` generates robust, zero-dependency JavaScript for inline error display and custom messages.
-*   **Media Element Helpers**: Methods for `<audio>`, `<video>`, `<canvas>`, `<source>`, and `<track>` tags.
-*   **Pre-defined Components**: Reusable components like `syqlorix.SimpleAlert(...)` and `syqlorix.ImageGallery(...)` for common UI patterns.
-*   **Component Loading**: `syqlorix.load_component(file_path, component_name)` allows loading components dynamically from separate Python files.
-*   **Routing System (`syqlorix.Route`)**:
-    *   `main_router = syqlorix.Route("/")`: Initialize a router instance.
-    *   `@main_router.route("/path")`: Decorator to map Python functions (which return `Page` objects) to URL paths.
-    *   `router.subroute(sub_router)`: Nest router instances for modular routing.
-*   **Server-Side Form Parsing**: `syqlorix.parse_form_urlencoded(data_string)` utility for zero-dependency parsing of form submissions.
-*   `page.render()` -> Outputs the full HTML page string including `<!DOCTYPE html>`.
-*   `syqlorix serve <routes_file.py>` -> CLI command to start a multi-page development server, serving pages and static assets from the project root, providing a clickable link and auto-detection in Codespaces.
-*   `syqlorix build <routes_file.py> -o <output_dir>` -> CLI command to generate a static site from a routes file, including copying static assets.
+*   **Pure Python HTML:** Generate any HTML element using Python objects and operators.
+*   **Live Reload Server:** The dev server automatically reloads your browser on code changes.
+*   **Dynamic Routing:** Create clean routes with variable paths (e.g., `/user/<username>`).
+*   **POST/GET Handling:** Easily handle different HTTP methods to process form data.
+*   **JSON API Responses:** Return a `dict` or `list` from a route to create an API endpoint.
+*   **Static File Serving:** Automatically serves files from a `./static` directory.
+*   **Zero-Config Build:** Compile your app into a single, minified HTML file for production.
+*   **Simple CLI:** Get started instantly with `init`, `run`, and `build` commands.
 
-## Target Use Cases
+## Quick Start
 
-*   **Fast Prototyping**: Quickly mock up HTML content without juggling multiple files, using `syqlorix serve`.
-*   **Dynamic HTML Generation**: For developers who need to generate HTML on the fly without a full-blown templating engine.
-*   **Educational Tools**: A clear, Python-only way to demonstrate HTML structure.
-*   **Static Site Generation**: Build simple static sites purely with Python scripts using `syqlorix build`.
-*   **Small Web Services**: Embed HTML generation directly into Flask/Starlette applications.
-
-## Name Rationale: “Syqlorix”
-
-Syqlorix is an invented word, providing a unique word for the project. Its tech-aesthetic, futuristic, and protocol-sounding nature is distinctive and easily pronounced, aiming for a brand-ready feel.
-
-## Future Directions
-
-*   Nothing from now (You're free to suggest more ideas!)
-
-## Get Started (Local Installation)
-
-1.  **Clone this repository**
-2.  **Navigate to the project root** in your terminal.
-3.  **Install in editable mode** (for development) or as a regular package:
-
-    ```bash
-    pip install .
-    ```
-
-    You can install directly:
+1.  **Install Syqlorix:**
     ```bash
     pip install syqlorix
     ```
 
+2.  **Create a file `app.py`:**
+    ```python
+    # app.py
+    from syqlorix import *
+
+    doc / h1("Hello from Syqlorix!")
+    doc / p("This is a web page generated entirely from Python.")
+    ```
+
+3.  **Run the development server:**
+    ```bash
+    syqlorix run app.py
+    ```
+
+4.  Open your browser to `http://127.0.0.1:8000`. That's it!
+
+<br/>
+
+<details>
+  <summary><h2><strong>› Click to view Usage Guide</strong></h2></summary>
+
+### Serving Static Files
+
+Create a folder named `static` in your project directory. Any files inside it (e.g., `static/logo.png`, `static/custom.css`) will be served automatically from the root URL path.
+
+```python
+# Reference a static file in your code
+doc / img(src="/logo.png", alt="My Logo")
+doc / link(rel="stylesheet", href="/custom.css")
+```
+
+### Dynamic Routing
+
+Define routes with variable sections using `<var_name>` syntax. The captured values are available in `request.path_params`.
+
+```python
+@doc.route('/user/<username>')
+def user_profile(request):
+    username = request.path_params.get('username', 'Guest')
+    return h1(f"Hello, {username}!")
+```
+
+### Handling Forms & POST Requests
+
+Specify which HTTP methods a route accepts with the `methods` argument. The `request` object contains `form_data` for form submissions.
+
+```python
+@doc.route('/message', methods=['GET', 'POST'])
+def message_form(request):
+    if request.method == 'POST':
+        user_message = request.form_data.get('message', 'nothing')
+        return h1(f"You sent: '{user_message}'")
+    
+    # On GET request, show the form
+    return form(
+        input_(type="text", name="message"), # Use input_ to avoid conflict
+        button("Submit"),
+        method="POST"
+    )
+```
+
+### Returning JSON for APIs
+
+Simply return a Python dictionary or list from a route to create a JSON API. Syqlorix automatically sets the correct `Content-Type` header.
+
+```python
+@doc.route('/api/health')
+def health_check(request):
+    return {"status": "ok", "method": request.method}
+```
+
+</details>
+
+<details>
+  <summary><h2><strong>› Click to view Command-Line Interface (CLI)</strong></h2></summary>
+
+Syqlorix comes with a simple and powerful CLI.
+
+*   #### `syqlorix init [filename]`
+    Creates a new project file with a helpful template to get you started. Defaults to `app.py`.
+    ```bash
+    syqlorix init my_cool_app.py
+    ```
+
+*   #### `syqlorix run <file>`
+    Runs the live-reloading development server. It will automatically find an open port if the default is busy.
+    *   `--port <number>`: Specify a starting port (defaults to 8000).
+    *   `--no-reload`: Disable the live-reload feature.
+    ```bash
+    syqlorix run app.py --port 8080
+    ```
+
+*   #### `syqlorix build <file>`
+    Builds a single, static HTML file from your script's default state. This command does not execute routes.
+    *   `--output <filename>` or `-o <filename>`: Set the output file name.
+    *   `--minify`: Minifies the HTML and any inline CSS/JS for production.
+    ```bash
+    syqlorix build main.py -o index.html --minify
+    ```
+
+</details>
+
+## Target Use Cases
+
+*   **Fast Prototyping**: Quickly mock up web interfaces without juggling multiple files.
+*   **Simple Dashboards**: Create internal tools or data visualizations.
+*   **Educational Tools**: A clear, Python-only way to demonstrate web fundamentals.
+*   **Simple APIs**: Build and serve JSON data from Python scripts.
+*   **Single-File Web Apps**: Package an entire web utility into one `.py` file.
+
 ## Contributing
 
-Contributions are welcome! Feel free to open issues or submit pull requests.
+Contributions are welcome! Feel free to open issues or submit pull requests on the [GitHub repository](https://github.com/Syqlorix/Syqlorix).
 
 ## License
 

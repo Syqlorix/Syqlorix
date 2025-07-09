@@ -1,21 +1,22 @@
+# pyproject.toml
+
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "syqlorix"
-version = "0.0.3.3"
-description = "A hyper-minimal Python DSL for HTML + CSS + JS in one file."
+version = "1.0.0"
+description = "A hyper-minimalist Python DSL for generating HTML, CSS, and JS in a single file with live reload and dynamic routing."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT License" }
-keywords = ["html", "css", "javascript", "dsl", "web", "dominate", "flask", "templating"]
+keywords = ["html", "css", "javascript", "dsl", "web", "dominate", "flask", "templating", "ui", "live-reload", "routing"]
 authors = [
-  { name = "Karl Benjamin R. Bughaw", email = "benjo@pro.space" },
-  { name = "Syqlorix", email = "benjo@pro.space" }
+  { name = "Karl Benjamin R. Bughaw", email = "benjo@pro.space" }
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -24,19 +25,26 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Text Processing :: Markup :: HTML",
+    "Topic :: Text Processing :: Markup :: HTML"
+]
+
+dependencies = [
+    "click>=8.0",
+    "watchdog>=2.0",
+    "websockets>=12.0",
+    "jsmin>=3.0",
+    "cssmin>=0.2"
 ]
 
 [project.urls]
 Homepage = "https://github.com/Syqlorix/Syqlorix"
 "Bug Tracker" = "https://github.com/Syqlorix/Syqlorix/issues"
-"Source Code" = "https://github.com/Syqlorix/Syqlorix"
-Documentation = "https://syqlorix.github.io"
-
-[tool.setuptools]
-packages = ["syqlorix"]
-include-package-data = true
 
 [project.scripts]
 syqlorix = "syqlorix.cli:main"
+
+[tool.setuptools]
+packages = ["syqlorix"]
+package-data = {"syqlorix" = ["*.pyi"]}
