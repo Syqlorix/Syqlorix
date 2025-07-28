@@ -254,23 +254,23 @@ class Syqlorix(Node):
                     def _handle_request(self, is_head=False):
                         request = Request(self)
                         syqlorix_app = self._app_instance
-                        
+
                         # --- Static file handling ---
-                        static_dir = project_root / 'static'
-                        req_static_path_str = request.path_full.lstrip('/')
+                        static_dir_abs = (project_root / 'static').resolve()
                         try:
-                            resolved_static_path = (static_dir / req_static_path_str).resolve(strict=True)
-                            if resolved_static_path.is_file() and resolved_static_path.is_relative_to(static_dir.resolve()):
-                                mime_type, _ = mimetypes.guess_type(resolved_static_path)
+                            req_file_abs = (project_root / request.path.lstrip('/')).resolve(strict=True)
+
+                            if req_file_abs.is_file() and req_file_abs.is_relative_to(static_dir_abs):
+                                mime_type, _ = mimetypes.guess_type(req_file_abs)
                                 self.send_response(200)
                                 self.send_header('Content-type', mime_type or 'application/octet-stream')
-                                if not is_head: self.send_header("Content-length", str(resolved_static_path.stat().st_size))
+                                if not is_head: self.send_header("Content-length", str(req_file_abs.stat().st_size))
                                 self.end_headers()
                                 if not is_head:
-                                    with open(resolved_static_path, 'rb') as f:
+                                    with open(req_file_abs, 'rb') as f:
                                         self.wfile.write(f.read())
                                 return
-                        except (FileNotFoundError, ValueError):
+                        except (FileNotFoundError, ValueError, NotADirectoryError):
                             pass
 
                         # --- Favicon handling ---
@@ -295,7 +295,7 @@ class Syqlorix(Node):
                                     content_type = "text/html"
                                     if isinstance(response_data, (dict, list)):
                                         content_type = "application/json"
-                                        html_bytes = response_data.render(pretty=True, live_reload_port=syqlorix_app._live_reload_ws_port, live_reload_host=syqlorix_app._live_reload_host).encode("utf-8")
+                                        html_bytes = json.dumps(response_data, indent=2).encode("utf-8")
                                     elif isinstance(response_data, Syqlorix):
                                         html_bytes = response_data.render(pretty=True, live_reload_port=syqlorix_app._live_reload_ws_port, live_reload_host=syqlorix_app._live_reload_host).encode("utf-8")
                                     elif isinstance(response_data, Node):
@@ -316,7 +316,7 @@ class Syqlorix(Node):
                                     return
 
                         # --- Fallback for simple apps with no routes ---
-                        if not syqlorix_app._routes:
+                        if not syqlorix_app._routes and request.path == '/':
                             html_bytes = syqlorix_app.render(pretty=True, live_reload_port=syqlorix_app._live_reload_ws_port, live_reload_host=syqlorix_app._live_reload_host).encode("utf-8")
                             self.send_response(200)
                             self.send_header("Content-type", "text/html")
