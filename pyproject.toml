@@ -7,12 +7,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "syqlorix"
-version = "1.0.4"
+version = "1.0.5"
 description = "A hyper-minimalist Python DSL for generating HTML, CSS, and JS in a single file with live reload and dynamic routing."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT License" }
-keywords = ["html", "css", "javascript", "dsl", "web", "dominate", "flask", "templating", "ui", "live-reload", "routing"]
+keywords = ["html", "css", "javascript", "dsl", "web", "dominate", "flask", "templating", "ui", "live-reload", "routing", "static-server"]
 authors = [
   { name = "Karl Benjamin R. Bughaw", email = "benjo@pro.space" }
 ]

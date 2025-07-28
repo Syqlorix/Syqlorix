@@ -12,7 +12,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from jsmin import jsmin
 from cssmin import cssmin
-
+from syqlorix import *
 
 class C:
     PRIMARY = '\033[38;5;51m'
@@ -242,6 +242,7 @@ class Syqlorix(Node):
 
         for attempt in range(max_port_attempts):
             try:
+                
                 class SyqlorixRequestHandler(BaseHTTPRequestHandler):
                     _app_instance = self
 
@@ -251,33 +252,45 @@ class Syqlorix(Node):
                         except (BrokenPipeError, ConnectionResetError):
                             pass
 
+                    def _send_syqlorix_404(self, path):
+                        error_page = Syqlorix(
+                            head(
+                                title("404 Not Found"),
+                                style("""
+                                    body { background-color: #1a1a2e; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; display: grid; place-content: center; height: 100vh; margin: 0; text-align: center; }
+                                    .container { padding: 2rem 4rem; border-radius: 8px; background: #2a2a4a; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+                                    h1 { color: #ff5370; font-size: 5rem; margin: 0; }
+                                    h2 { color: #00a8cc; margin-bottom: 1rem; }
+                                    p { color: #aaa; margin-top: 0.5rem; }
+                                    code { background-color: #333; padding: 0.2rem 0.4rem; border-radius: 4px; color: #ffcb6b; }
+                                    a { color: #72d5ff; font-weight: bold; text-decoration: none; }
+                                    a:hover { text-decoration: underline; }
+                                """)
+                            ),
+                            body(
+                                div(
+                                    h1("404"),
+                                    h2("Page Not Found"),
+                                    p("The requested path ", code(path), " was not found on this server."),
+                                    p(a("Return to Homepage", href="/")),
+                                    class_="container"
+                                )
+                            )
+                        )
+                        error_html = error_page.render(pretty=True).encode('utf-8')
+                        self.send_response(404)
+                        self.send_header("Content-type", "text/html")
+                        self.send_header("Content-length", str(len(error_html)))
+                        self.end_headers()
+                        self.wfile.write(error_html)
+
                     def _handle_request(self, is_head=False):
                         request = Request(self)
                         syqlorix_app = self._app_instance
-
-                        # --- Static file handling ---
-                        static_dir_abs = (project_root / 'static').resolve()
-                        try:
-                            req_file_abs = (project_root / request.path.lstrip('/')).resolve(strict=True)
-
-                            if req_file_abs.is_file() and req_file_abs.is_relative_to(static_dir_abs):
-                                mime_type, _ = mimetypes.guess_type(req_file_abs)
-                                self.send_response(200)
-                                self.send_header('Content-type', mime_type or 'application/octet-stream')
-                                if not is_head: self.send_header("Content-length", str(req_file_abs.stat().st_size))
-                                self.end_headers()
-                                if not is_head:
-                                    with open(req_file_abs, 'rb') as f:
-                                        self.wfile.write(f.read())
-                                return
-                        except (FileNotFoundError, ValueError, NotADirectoryError):
-                            pass
-
                         # --- Favicon handling ---
                         if request.path == '/favicon.ico':
                             self.send_response(204); self.end_headers(); return
 
-                        # --- Dynamic route handling ---
                         for route_regex, methods, handler_func in syqlorix_app._routes:
                             match = route_regex.match(request.path)
                             if match:
@@ -289,8 +302,7 @@ class Syqlorix(Node):
                                     response_data = handler_func(request)
                                     if isinstance(response_data, tuple) and len(response_data) == 2:
                                         response_data, status_code = response_data
-                                    else:
-                                        status_code = 200
+                                    else: status_code = 200
 
                                     content_type = "text/html"
                                     if isinstance(response_data, (dict, list)):
@@ -315,27 +327,26 @@ class Syqlorix(Node):
                                     self.send_error(500, f"Internal Server Error: {e}")
                                     return
 
-                        # --- Fallback for simple apps with no routes ---
-                        if not syqlorix_app._routes and request.path == '/':
-                            index_path = (project_root / 'static' / 'index.html').resolve()
-                            if index_path.is_file():
-                                self.send_response(200)
-                                self.send_header('Content-type', 'text/html')
-                                self.send_header("Content-length", str(index_path.stat().st_size))
-                                self.end_headers()
-                                with open(index_path, 'rb') as f:
-                                    self.wfile.write(f.read())
-                                return
-                            else:
-                                html_bytes = syqlorix_app.render(pretty=True, live_reload_port=syqlorix_app._live_reload_ws_port, live_reload_host=syqlorix_app._live_reload_host).encode("utf-8")
-                                self.send_response(200)
-                                self.send_header("Content-type", "text/html")
-                                self.send_header("Content-length", str(len(html_bytes)))
-                                self.end_headers()
-                                self.wfile.write(html_bytes)
-                                return
+                        static_dir_abs = (project_root / 'static').resolve()
+                        file_name = 'index.html' if request.path == '/' else request.path.lstrip('/')
+                        
+                        try:
+                            static_file_path = (static_dir_abs / file_name).resolve(strict=True)
 
-                        self.send_error(404, "Not Found")
+                            if static_file_path.is_file() and static_file_path.is_relative_to(static_dir_abs):
+                                mime_type, _ = mimetypes.guess_type(static_file_path)
+                                self.send_response(200)
+                                self.send_header('Content-type', mime_type or 'application/octet-stream')
+                                if not is_head: self.send_header("Content-length", str(static_file_path.stat().st_size))
+                                self.end_headers()
+                                if not is_head:
+                                    with open(static_file_path, 'rb') as f:
+                                        self.wfile.write(f.read())
+                                return
+                        except (FileNotFoundError, ValueError, NotADirectoryError):
+                            pass
+                            
+                        self._send_syqlorix_404(request.path)
 
                     def do_GET(self): self._handle_request()
                     def do_POST(self): self._handle_request()
@@ -410,6 +421,7 @@ input_ = globals()['input']
 
 doc = Syqlorix()
 
+# I only use this when I want to add some customs that are requested
 __all__ = [
     'Node', 'Syqlorix', 'Component', 'Comment', 'Request',
     'head', 'body', 'style', 'script',
