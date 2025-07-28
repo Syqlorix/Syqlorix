@@ -317,13 +317,23 @@ class Syqlorix(Node):
 
                         # --- Fallback for simple apps with no routes ---
                         if not syqlorix_app._routes and request.path == '/':
-                            html_bytes = syqlorix_app.render(pretty=True, live_reload_port=syqlorix_app._live_reload_ws_port, live_reload_host=syqlorix_app._live_reload_host).encode("utf-8")
-                            self.send_response(200)
-                            self.send_header("Content-type", "text/html")
-                            self.send_header("Content-length", str(len(html_bytes)))
-                            self.end_headers()
-                            self.wfile.write(html_bytes)
-                            return
+                            index_path = (project_root / 'static' / 'index.html').resolve()
+                            if index_path.is_file():
+                                self.send_response(200)
+                                self.send_header('Content-type', 'text/html')
+                                self.send_header("Content-length", str(index_path.stat().st_size))
+                                self.end_headers()
+                                with open(index_path, 'rb') as f:
+                                    self.wfile.write(f.read())
+                                return
+                            else:
+                                html_bytes = syqlorix_app.render(pretty=True, live_reload_port=syqlorix_app._live_reload_ws_port, live_reload_host=syqlorix_app._live_reload_host).encode("utf-8")
+                                self.send_response(200)
+                                self.send_header("Content-type", "text/html")
+                                self.send_header("Content-length", str(len(html_bytes)))
+                                self.end_headers()
+                                self.wfile.write(html_bytes)
+                                return
 
                         self.send_error(404, "Not Found")
 
