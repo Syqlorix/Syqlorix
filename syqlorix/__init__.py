@@ -193,6 +193,13 @@ class Syqlorix(Node):
 
     async def _async_live_reload(self, host, ws_port, watch_dirs):
         active_sockets = set()
+
+
+        async def send_reload_to_all():
+            """Gathers all send tasks and executes them."""
+            if active_sockets:
+                await asyncio.gather(*[ws.send("reload") for ws in active_sockets])
+
         stop_event = asyncio.Event()
 
         async def websocket_handler(websocket):
@@ -203,18 +210,23 @@ class Syqlorix(Node):
                 active_sockets.remove(websocket)
 
         class ChangeHandler(FileSystemEventHandler):
+            def __init__(self, loop, sockets):
+                self.loop = loop
+                self.sockets = sockets
+
             def on_modified(self, event):
                 if not event.is_directory:
                     print(f"✨ {C.WARNING}File changed ({event.src_path}). Triggering reload...{C.END}")
-                    if active_sockets:
-                        asyncio.create_task(asyncio.gather(*[ws.send("reload") for ws in active_sockets]))
-        
+                    asyncio.run_coroutine_threadsafe(send_reload_to_all(), self.loop)
+
         server = await websockets.serve(websocket_handler, host, ws_port)
         print(f"🛰️  {C.INFO}Syqlorix Live-Reload server listening on {C.BOLD}ws://{host}:{ws_port}{C.END}")
 
+        loop = asyncio.get_running_loop()
+
         observer = Observer()
         for watch_dir in watch_dirs:
-            observer.schedule(ChangeHandler(), path=str(watch_dir), recursive=True)
+            observer.schedule(ChangeHandler(loop, active_sockets), path=str(watch_dir), recursive=True)
             print(f"👀 {C.INFO}Watching for changes in {C.BOLD}'{watch_dir}' (recursively){C.END}")
         observer.start()
 
