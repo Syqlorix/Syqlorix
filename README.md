@@ -31,11 +31,11 @@ It is designed for developers who want to create web UIs and simple APIs without
 ## Key Features
 
 *   **Pure Python HTML:** Generate any HTML element using Python objects and operators.
-*   **Enhanced Live Reload Server:** The dev server automatically reloads your browser on code changes across your project, including files in the `static/` directory and your main Python script, enabling seamless multi-file development.
+*   **Project-Wide Live Reload:** The dev server watches your **entire project directory**. Change a Python file, a CSS file, or an image, and your browser reloads instantly.
 *   **Dynamic Routing:** Create clean routes with variable paths (e.g., `/user/<username>`).
 *   **POST/GET Handling:** Easily handle different HTTP methods to process form data.
 *   **JSON API Responses:** Return a `dict` or `list` from a route to create an API endpoint.
-*   **Static File Serving:** Automatically serves files from a `./static` directory.
+*   **Flexible & Secure File Serving:** Serve CSS, JS, and images directly from your project root. **No `static` folder required** A built-in security whitelist prevents accidental exposure of sensitive files like `.py` or `.env`.
 *   **Zero-Config Build:** Compile your app into a single, minified HTML file for production.
 *   **Simple CLI:** Get started instantly with `init`, `run`, and `build` commands.
 
@@ -67,17 +67,29 @@ It is designed for developers who want to create web UIs and simple APIs without
 <details>
   <summary><h2><strong>› Click to view Usage Guide</strong></h2></summary>
 
-### Serving Static Files
+### Serving Files (CSS, JS, Images)
 
-Create a folder named `static` in your project directory. Any files inside it (e.g., `static/logo.png`, `static/custom.css`) will be served automatically from the root URL path.
+Syqlorix serves files directly from your project's root directory, making development simple.
 
-```python
-# Reference a static file in your code
-doc / img(src="/logo.png", alt="My Logo")
-doc / link(rel="stylesheet", href="/custom.css")
+**Project Structure:**
+```
+/my-project/
+├── app.py
+├── style.css
+└── logo.svg
 ```
 
-*Changes to any files within the `static` directory (e.g., `custom.css`, `logo.png`) will automatically trigger a live reload in your browser.*
+**Code:**
+```python
+# In app.py, link to your files at the root
+doc / head(
+link(rel="stylesheet", href="/style.css")
+)
+doc / body(
+img(src="/logo.svg", alt="My Logo")
+)
+```
+*The server will find and serve these files automatically and securely. There is no need for a dedicated `static` folder.*
 
 ### Dynamic Routing
 
