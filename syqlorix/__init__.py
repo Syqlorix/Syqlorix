@@ -339,13 +339,12 @@ class Syqlorix(Node):
                                     self.send_error(500, f"Internal Server Error: {e}")
                                     return
 
-                        static_dir_abs = (project_root / 'static').resolve()
                         file_name = 'index.html' if request.path == '/' else request.path.lstrip('/')
                         
                         try:
-                            static_file_path = (static_dir_abs / file_name).resolve(strict=True)
-
-                            if static_file_path.is_file() and static_file_path.is_relative_to(static_dir_abs):
+                            static_file_path = (project_root / file_name).resolve(strict=True)
+                            
+                            if static_file_path.is_file() and static_file_path.is_relative_to(project_root) and static_file_path.suffix != '.py':
                                 mime_type, _ = mimetypes.guess_type(static_file_path)
                                 self.send_response(200)
                                 self.send_header('Content-type', mime_type or 'application/octet-stream')
@@ -355,6 +354,7 @@ class Syqlorix(Node):
                                     with open(static_file_path, 'rb') as f:
                                         self.wfile.write(f.read())
                                 return
+                                
                         except (FileNotFoundError, ValueError, NotADirectoryError):
                             pass
                             
