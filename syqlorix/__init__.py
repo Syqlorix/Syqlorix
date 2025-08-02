@@ -13,6 +13,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from jsmin import jsmin
 from cssmin import cssmin
+from syqlorix import *
 
 class C:
     PRIMARY = '\033[38;5;51m'

@@ -135,91 +135,91 @@ def build(file, output_path_str, minify):
         except Exception as e:
             click.echo(f"   - {C.ERROR}Failed to build {route_path}: {e}{C.END}")
 
-    click.echo(f"✅ {C.SUCCESS}Success! Static site build complete.{C.END}")
+click.echo(f"✅ {C.SUCCESS}Success! Static site build complete.{C.END}")
 
-    INIT_TEMPLATE = '''from syqlorix import *
-    import time
+INIT_TEMPLATE = '''from syqlorix import *
+import time
 
-    # --- Main Application Setup ---
-    # All routes and handlers will be attached to this 'doc' object.
-    doc = Syqlorix()
+# --- Main Application Setup ---
+# All routes and handlers will be attached to this 'doc' object.
+doc = Syqlorix()
 
-    # --- Blueprints (for organizing larger apps) ---
-    # Create a Blueprint, which is like a mini-app for a section of your site.
-    main_pages = Blueprint("main", url_prefix="/pages")
+# --- Blueprints (for organizing larger apps) ---
+# Create a Blueprint, which is like a mini-app for a section of your site.
+main_pages = Blueprint("main", url_prefix="/pages")
 
-    # --- Middleware ---
-    # This function will run BEFORE every single request.
-    @doc.before_request
-    def log_request(request):
-        print(f"Request received for: {request.path} at {time.time()}")
-        # Middleware can add data to the request for later use in routes
-        request.start_time = time.time()
-        # If middleware returns anything, it stops the request and sends the response.
+# --- Middleware ---
+# This function will run BEFORE every single request.
+@doc.before_request
+def log_request(request):
+    print(f"Request received for: {request.path} at {time.time()}")
+    # Middleware can add data to the request for later use in routes
+    request.start_time = time.time()
+    # If middleware returns anything, it stops the request and sends the response.
 
-    # --- Custom Error Handlers ---
-    # Create a custom, branded page for 404 Not Found errors.
-    @doc.error_handler(404)
-    def not_found_handler(request):
-        # You can reuse your page_layout to keep the branding consistent!
-        return page_layout("404 - Not Found", div(
-            h1("Oops! Page Not Found."),
-            p("The page you're looking for doesn't seem to exist.")
-        )), 404
+# --- Custom Error Handlers ---
+# Create a custom, branded page for 404 Not Found errors.
+@doc.error_handler(404)
+def not_found_handler(request):
+    # You can reuse your page_layout to keep the branding consistent!
+    return page_layout("404 - Not Found", div(
+        h1("Oops! Page Not Found."),
+        p("The page you're looking for doesn't seem to exist.")
+    )), 404
 
-    # --- Reusable Components & Layouts ---
-    common_css = style("""
-        body { background-color: #1a1a2e; color: #e0e0e0; font-family: sans-serif; margin: 0; }
-        .container { max-width: 700px; margin: 2rem auto; padding: 2rem; border-radius: 8px; background: #2a2a4a; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        h1 { color: #00a8cc; margin-bottom: 1rem; }
-        p { color: #aaa; line-height: 1.6; }
-        nav { text-align: center; padding: 1.5rem; background-color: #1e1e3a; }
-        nav a { margin: 0 1.5rem; color: #72d5ff; text-decoration: none; font-weight: bold; font-size: 1.1rem; }
-        nav a:hover { text-decoration: underline; }
-    """)
+# --- Reusable Components & Layouts ---
+common_css = style("""
+    body { background-color: #1a1a2e; color: #e0e0e0; font-family: sans-serif; margin: 0; }
+    .container { max-width: 700px; margin: 2rem auto; padding: 2rem; border-radius: 8px; background: #2a2a4a; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    h1 { color: #00a8cc; margin-bottom: 1rem; }
+    p { color: #aaa; line-height: 1.6; }
+    nav { text-align: center; padding: 1.5rem; background-color: #1e1e3a; }
+    nav a { margin: 0 1.5rem; color: #72d5ff; text-decoration: none; font-weight: bold; font-size: 1.1rem; }
+    nav a:hover { text-decoration: underline; }
+""")
 
-    def page_layout(title_text, content_node):
-        return Syqlorix(
-            head(
-                title(title_text),
-                common_css
+def page_layout(title_text, content_node):
+    return Syqlorix(
+        head(
+            title(title_text),
+            common_css
+        ),
+        body(
+            nav(
+                a("Home", href="/"),
+                a("Page 1", href="/pages/page1"),
+                a("Redirect", href="/old")
             ),
-            body(
-                nav(
-                    a("Home", href="/"),
-                    a("Page 1", href="/pages/page1"),
-                    a("Redirect", href="/old")
-                ),
-                div(content_node, class_="container")
-            )
+            div(content_node, class_="container")
         )
+    )
 
-    # --- Define Routes on the Main 'doc' object ---
-    @doc.route('/')
-    def home_page(request):
-        processing_time = (time.time() - request.start_time) * 1000
-        return page_layout("Home", div(
-            h1("Welcome to Syqlorix!"),
-            p("This page demonstrates Middleware, Blueprints, and Error Handlers."),
-            p(f"Request processed in: {processing_time:.2f} ms (thanks to middleware!)")
-        ))
+# --- Define Routes on the Main 'doc' object ---
+@doc.route('/')
+def home_page(request):
+    processing_time = (time.time() - request.start_time) * 1000
+    return page_layout("Home", div(
+        h1("Welcome to Syqlorix!"),
+        p("This page demonstrates Middleware, Blueprints, and Error Handlers."),
+        p(f"Request processed in: {processing_time:.2f} ms (thanks to middleware!)")
+    ))
 
-    @doc.route('/old')
-    def old_page(request):
-        return redirect('/') # Test the redirect helper
+@doc.route('/old')
+def old_page(request):
+    return redirect('/') # Test the redirect helper
 
-    # --- Define Routes on the Blueprint ---
-    @main_pages.route('/page1')
-    def blueprint_page_1(request):
-        return page_layout("Page 1", div(
-            h1("Blueprint Page 1"),
-            p("This route is part of the 'main_pages' blueprint, served under '/pages/page1'.")
-        ))
+# --- Define Routes on the Blueprint ---
+@main_pages.route('/page1')
+def blueprint_page_1(request):
+    return page_layout("Page 1", div(
+        h1("Blueprint Page 1"),
+        p("This route is part of the 'main_pages' blueprint, served under '/pages/page1'.")
+    ))
 
-    # --- Register Blueprints ---
-    # Finally, attach all blueprints to the main application.
-    doc.register_blueprint(main_pages)
-    '''
+# --- Register Blueprints ---
+# Finally, attach all blueprints to the main application.
+doc.register_blueprint(main_pages)
+'''
 
 @main.command()
 @click.argument('filename', default='app.py', type=click.Path())
