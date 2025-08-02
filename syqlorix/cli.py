@@ -5,7 +5,6 @@ from pathlib import Path
 import importlib.util
 from importlib import metadata as importlib_metadata
 from jsmin import jsmin
-from cssmin import cssmin
 from . import Syqlorix, Node, Request, head, body, redirect
 
 PACKAGE_VERSION = importlib_metadata.version('syqlorix')
