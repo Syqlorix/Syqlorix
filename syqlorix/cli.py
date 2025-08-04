@@ -6,9 +6,9 @@ import importlib.util
 from importlib import metadata as importlib_metadata
 from jsmin import jsmin
 from cssmin import cssmin
+from . import *
 
 PACKAGE_VERSION = importlib_metadata.version('syqlorix')
-
 
 class C:
     BANNER_START = '\033[38;5;27m'
@@ -71,22 +71,74 @@ def run(file, host, port, no_reload):
 
 @main.command()
 @click.argument('file', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--output', '-o', default=None, help='Output file name. Defaults to <input_name>.html.')
+@click.option('--output', '-o', 'output_path_str', default=None, help='Output directory name. Defaults to "dist".')
 @click.option('--minify', is_flag=True, default=False, help='Minify HTML, and inline CSS/JS.')
-def build(file, output, minify):    
+def build(file, output_path_str, minify):
+
+    if not file.endswith('.py'):
+        click.echo(f"{C.ERROR}Error: Input file must be a Python script.{C.END}")
+        sys.exit(1)
+
     path = Path(file)
-    if output is None:
-        output = path.with_suffix('.html').name
-    click.echo(f"🛠️  {C.PRIMARY}Building {C.BOLD}{path.name}{C.END}...")
+    output_dir_name = output_path_str if output_path_str else 'dist'
+    output_path = path.parent / output_dir_name
+
+    click.echo(f"🛠️  {C.PRIMARY}Building static site from {C.BOLD}{path.name}{C.END}...")
+
     doc_instance = find_doc_instance(file)
-    html_content = doc_instance.render(pretty=not minify)
-    with open(output, 'w', encoding='utf-8') as f:
-        f.write(html_content)
-    click.echo(f"✅ {C.SUCCESS}Success! Static file saved to {C.BOLD}{output}{C.END}.")
+    if not doc_instance._routes:
+        click.echo(f"{C.WARNING}Warning: No routes found to build.{C.END}")
+        return
+
+    os.makedirs(output_path, exist_ok=True)
+    click.echo(f"   Writing to {C.BOLD}'{output_path}'{C.END}...")
+
+    for route_regex, methods, handler_func in doc_instance._routes:
+        if 'GET' not in methods:
+            continue
+
+        route_path = route_regex.pattern.replace('$', '').replace('(?P<', '').replace('>[^/]+)', '')
+        if route_path == '/':
+            file_name = 'index.html'
+        else:
+            file_name = route_path.strip('/') + '.html'
+
+        file_dest = output_path / file_name
+        os.makedirs(file_dest.parent, exist_ok=True)
+        
+        class MockRequest:
+            method = 'GET'
+            path = route_path
+            path_full = route_path
+            path_params = {}
+            query_params = {}
+            headers = {}
+
+        try:
+            response_data = handler_func(MockRequest())
+            if isinstance(response_data, tuple):
+                response_data, _ = response_data
+            
+            html_content = ""
+            if isinstance(response_data, Syqlorix):
+                html_content = response_data.render(pretty=not minify)
+            elif isinstance(response_data, Node):
+                temp_syqlorix = Syqlorix(head(), body(response_data))
+                html_content = temp_syqlorix.render(pretty=not minify)
+            else:
+                html_content = str(response_data)
+
+            with open(file_dest, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            click.echo(f"   - Built {C.SUCCESS}{route_path}{C.END} -> {C.BOLD}{file_dest.relative_to(path.parent)}{C.END}")
+
+        except Exception as e:
+            click.echo(f"   - {C.ERROR}Failed to build {route_path}: {e}{C.END}")
+
+    click.echo(f"✅ {C.SUCCESS}Success! Static site build complete.{C.END}")
 
 INIT_TEMPLATE = '''from syqlorix import *
 
-# Define common CSS that can be reused across pages
 common_css = style("""
     body {
         background-color: #1a1a2e; color: #e0e0e0; font-family: sans-serif;
@@ -103,7 +155,6 @@ common_css = style("""
     hr { border-color: #444; margin: 2rem 0; }
 """)
 
-# Define a reusable template for all pages
 def page_layout(title_text, content_node):
     return Syqlorix(
         head(
@@ -123,8 +174,6 @@ def page_layout(title_text, content_node):
             )
         )
     )
-
-# --- Define your routes ---
 
 @doc.route('/')
 def home_page(request):
@@ -151,7 +200,7 @@ def message_form(request):
         content / h1("Message Received!")
         content / p(f"You sent: '{user_message}' via a POST request.")
         content / a("Send another message", href="/message")
-    else: # GET request
+    else:
         content / h1("Send a Message")
         content / form(
             label("Your message:", for_="message"),

@@ -4,12 +4,14 @@ import threading
 import mimetypes
 import re
 import json
+import hashlib
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 import urllib.parse
 import websockets
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+import subprocess
 from jsmin import jsmin
 from cssmin import cssmin
 from syqlorix import *
@@ -165,11 +167,130 @@ class Request:
                 except json.JSONDecodeError:
                     print(f"{C.WARNING}Warning: Could not decode JSON body.{C.END}")
 
+class RedirectResponse:
+    def __init__(self, location, status_code=302):
+        self.location = location
+        self.status_code = status_code
+
+def redirect(location, status_code=302):
+    return RedirectResponse(location, status_code)
+
+class TestResponse:
+    def __init__(self, response_data, status_code, headers):
+        self.status_code = status_code
+        self.headers = headers
+        
+        if isinstance(response_data, Syqlorix):
+            self.text = response_data.render(pretty=False)
+        elif isinstance(response_data, Node):
+            self.text = Syqlorix(head(), body(response_data)).render(pretty=False)
+        else:
+            self.text = str(response_data)
+
+class TestClient:
+    def __init__(self, app):
+        self.app = app
+
+    def _make_request(self, method, path, form_data=None):
+        
+        class MockTestRequest:
+            def __init__(self, method, path, path_params, form_data):
+                self.method = method
+                self.path = path
+                self.path_full = path
+                self.path_params = path_params
+                self.form_data = form_data or {}
+                self.query_params = {}
+                self.headers = {}
+
+        for route_regex, methods, handler_func in self.app._routes:
+            match = route_regex.match(path)
+            if match:
+                if method not in methods:
+                    return TestResponse("Method Not Allowed", 405, {})
+
+                path_params = match.groupdict()
+                
+                import inspect
+                sig = inspect.signature(handler_func)
+                if len(sig.parameters) > 0:
+                    request_obj = MockTestRequest(method, path, path_params, form_data)
+                    response_data = handler_func(request_obj)
+                else:
+                    response_data = handler_func()
+
+                status_code = 200
+                headers = {}
+
+                if isinstance(response_data, RedirectResponse):
+                    status_code = response_data.status_code
+                    headers['Location'] = response_data.location
+                elif isinstance(response_data, tuple):
+                    response_data, status_code = response_data
+
+                return TestResponse(response_data, status_code, headers)
+
+        if 404 in self.app._error_handlers:
+            response_data = self.app._error_handlers[404](None)
+            return TestResponse(response_data, 404, {})
+
+        return TestResponse("Not Found", 404, {})
+
+    def get(self, path):
+        return self._make_request('GET', path)
+
+    def post(self, path, data=None):
+        return self._make_request('POST', path, form_data=data)
+     
+class Blueprint:
+    def __init__(self, name, url_prefix=""):
+        self.name = name
+        self.url_prefix = url_prefix.rstrip('/')
+        self._routes = []
+
+    def route(self, path, methods=['GET']):
+        def decorator(handler_func):
+            full_path = self.url_prefix + path
+            path_regex = re.sub(r'<([^>]+)>', r'(?P<\1>[^/]+)', full_path) + '$'
+            self._routes.append((re.compile(path_regex), set(m.upper() for m in methods), handler_func))
+            return handler_func
+        return decorator
+    
+    def before_request(self, func):
+        self._middleware.append(func)
+        return func
+
+    def error_handler(self, code):
+        def decorator(func):
+            self._error_handlers[code] = func
+            return func
+        return decorator
+
+    def register_blueprint(self, blueprint):
+        self._routes.extend(blueprint._routes)
+
+    def test_client(self):
+        return TestClient(self)
+    
+class RedirectResponse:
+    def __init__(self, location, status_code=302):
+        self.location = location
+        self.status_code = status_code
+
+def redirect(location, status_code=302):
+    return RedirectResponse(location, status_code)
+    
+
 class Syqlorix(Node):
     def __init__(self, *children, **attributes):
         super().__init__(*children, **attributes)
         self.tag_name = "html"
         self._routes = []
+        self._middleware = []
+        self._error_handlers = {}
+        self._live_reload_ws_port = None
+        self._live_reload_host = "127.0.0.1"
+        self._live_reload_enabled = True
 
     def route(self, path, methods=['GET']):
         def decorator(handler_func):
@@ -177,22 +298,49 @@ class Syqlorix(Node):
             self._routes.append((re.compile(path_regex), set(m.upper() for m in methods), handler_func))
             return handler_func
         return decorator
+    
+    def register_blueprint(self, blueprint):
+        self._routes.extend(blueprint._routes)
+
+    def test_client(self):
+        return TestClient(self)
+    
+    def before_request(self, func):
+        self._middleware.append(func)
+        return func
+
+    def error_handler(self, code):
+        def decorator(func):
+            self._error_handlers[code] = func
+            return func
+        return decorator
+
+    def register_blueprint(self, blueprint):
+        self._routes.extend(blueprint._routes)
+
+    def test_client(self):
+        return TestClient(self)
 
     def render(self, pretty=True, live_reload_port=None, live_reload_host=None):
         html_string = "<!DOCTYPE html>\n" + super().render(indent=0, pretty=pretty)
-        if live_reload_port and pretty: # Only inject script in dev mode
+        if live_reload_port and pretty:
             script_tag = LIVE_RELOAD_SCRIPT.format(host=live_reload_host, port=live_reload_port)
             html_string = html_string.replace("</body>", f"{script_tag}</body>")
         return html_string
 
-    def _live_reload_manager(self, host, ws_port, watch_dirs):
+    def _live_reload_manager(self, host, ws_port, watch_dirs, file_path):
         try:
-            asyncio.run(self._async_live_reload(host, ws_port, watch_dirs))
+            asyncio.run(self._async_live_reload(host, ws_port, watch_dirs, file_path))
         except KeyboardInterrupt:
             pass
 
-    async def _async_live_reload(self, host, ws_port, watch_dirs):
+    async def _async_live_reload(self, host, ws_port, watch_dirs, file_path):
         active_sockets = set()
+
+        async def send_reload_to_all():
+            if active_sockets:
+                await asyncio.gather(*[ws.send("reload") for ws in active_sockets])
+
         stop_event = asyncio.Event()
 
         async def websocket_handler(websocket):
@@ -203,18 +351,28 @@ class Syqlorix(Node):
                 active_sockets.remove(websocket)
 
         class ChangeHandler(FileSystemEventHandler):
+            def __init__(self, loop, sockets, file_path):
+                self.loop = loop
+                self.sockets = sockets
+                self.file_path = file_path
+
             def on_modified(self, event):
                 if not event.is_directory:
-                    print(f"✨ {C.WARNING}File changed ({event.src_path}). Triggering reload...{C.END}")
-                    if active_sockets:
-                        asyncio.create_task(asyncio.gather(*[ws.send("reload") for ws in active_sockets]))
-        
+                    file_path = Path(event.src_path)
+                    if str(file_path) == str(self.file_path):
+                        print(f"✨ {C.WARNING}Main app file changed ({event.src_path}). Reloading...{C.END}")
+                        
+                        # Signal reload
+                        asyncio.run_coroutine_threadsafe(send_reload_to_all(), self.loop)
+
         server = await websockets.serve(websocket_handler, host, ws_port)
         print(f"🛰️  {C.INFO}Syqlorix Live-Reload server listening on {C.BOLD}ws://{host}:{ws_port}{C.END}")
 
+        loop = asyncio.get_running_loop()
+
         observer = Observer()
         for watch_dir in watch_dirs:
-            observer.schedule(ChangeHandler(), path=str(watch_dir), recursive=True)
+            observer.schedule(ChangeHandler(loop, active_sockets, file_path), path=str(watch_dir), recursive=True)
             print(f"👀 {C.INFO}Watching for changes in {C.BOLD}'{watch_dir}' (recursively){C.END}")
         observer.start()
 
@@ -227,30 +385,56 @@ class Syqlorix(Node):
             await server.wait_closed()
 
     def run(self, file_path, host="127.0.0.1", port=8000, live_reload=True, max_port_attempts=10):
-
         current_port = port
         http_server = None
 
         print(f"🔥 {C.PRIMARY}Starting server for {C.BOLD}{Path(file_path).name}{C.END}...")
 
         project_root = Path(file_path).parent.resolve()
-        watch_dirs = [project_root] 
+        watch_dirs = [project_root]
 
-        potential_static_dir = project_root / 'static'
-        if potential_static_dir.is_dir():
-            watch_dirs.append(potential_static_dir)
+        # Load the app initially to discover routes
+        try:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location(Path(file_path).stem, str(file_path))
+            module = importlib.util.module_from_spec(spec)
+            sys.path.insert(0, str(Path(file_path).parent))
+            spec.loader.exec_module(module)
+            sys.path.pop(0)
+            
+            if hasattr(module, 'doc') and isinstance(module.doc, Syqlorix):
+                app_instance = module.doc
+            else:
+                app_instance = None
+        except Exception as e:
+            print(f"{C.ERROR}Error loading app: {e}{C.END}")
+            app_instance = None
 
         for attempt in range(max_port_attempts):
             try:
-                
                 class SyqlorixRequestHandler(BaseHTTPRequestHandler):
-                    _app_instance = self
+                    _app_instance = None
 
-                    def handle_one_request(self):
+                    def __init__(self, *args, **kwargs):
+                        self._load_app(file_path)
+                        super().__init__(*args, **kwargs)
+
+                    def _load_app(self, file_path):
+                        """Load/reload the app module"""
                         try:
-                            super().handle_one_request()
-                        except (BrokenPipeError, ConnectionResetError):
-                            pass
+                            import importlib.util
+                            import sys
+                            
+                            spec = importlib.util.spec_from_file_location(Path(file_path).stem, str(file_path))
+                            module = importlib.util.module_from_spec(spec)
+                            sys.path.insert(0, str(Path(file_path).parent))
+                            spec.loader.exec_module(module)
+                            sys.path.pop(0)
+                            
+                            if hasattr(module, 'doc') and isinstance(module.doc, Syqlorix):
+                                self._app_instance = module.doc
+                        except Exception as e:
+                            print(f"{C.ERROR}Error loading app: {e}{C.END}")
 
                     def _send_syqlorix_404(self, path):
                         error_page = Syqlorix(
@@ -285,34 +469,43 @@ class Syqlorix(Node):
                         self.wfile.write(error_html)
 
                     def _handle_request(self, is_head=False):
-                        request = Request(self)
-                        syqlorix_app = self._app_instance
-                        # --- Favicon handling ---
-                        if request.path == '/favicon.ico':
-                            self.send_response(204); self.end_headers(); return
+                        try:
+                            request = Request(self)
+                            
+                            if request.path == '/favicon.ico':
+                                self.send_response(204)
+                                self.end_headers()
+                                return
 
-                        for route_regex, methods, handler_func in syqlorix_app._routes:
-                            match = route_regex.match(request.path)
-                            if match:
-                                if request.method not in methods:
-                                    self.send_error(405, "Method Not Allowed"); return
-                                
-                                request.path_params = match.groupdict()
-                                try:
+                            for route_regex, methods, handler_func in self._app_instance._routes:
+                                match = route_regex.match(request.path)
+                                if match:
+                                    if request.method not in methods:
+                                        if 405 in self._app_instance._error_handlers:
+                                            self.send_response(405)
+                                            self.send_header("Content-type", "text/html")
+                                            self.end_headers()
+                                            self.wfile.write(b"405 - Method Not Allowed")
+                                        else:
+                                            self.send_error(405, "Method Not Allowed")
+                                        return
+                                    request.path_params = match.groupdict()
+                                    
                                     response_data = handler_func(request)
                                     if isinstance(response_data, tuple) and len(response_data) == 2:
                                         response_data, status_code = response_data
-                                    else: status_code = 200
+                                    else:
+                                        status_code = 200
 
                                     content_type = "text/html"
                                     if isinstance(response_data, (dict, list)):
                                         content_type = "application/json"
                                         html_bytes = json.dumps(response_data, indent=2).encode("utf-8")
                                     elif isinstance(response_data, Syqlorix):
-                                        html_bytes = response_data.render(pretty=True, live_reload_port=syqlorix_app._live_reload_ws_port, live_reload_host=syqlorix_app._live_reload_host).encode("utf-8")
+                                        html_bytes = response_data.render(pretty=True, live_reload_port=self._app_instance._live_reload_ws_port, live_reload_host=self._app_instance._live_reload_host).encode("utf-8")
                                     elif isinstance(response_data, Node):
                                         temp_syqlorix = Syqlorix(head(), body(response_data))
-                                        html_bytes = temp_syqlorix.render(pretty=True, live_reload_port=syqlorix_app._live_reload_ws_port, live_reload_host=syqlorix_app._live_reload_host).encode("utf-8")
+                                        html_bytes = temp_syqlorix.render(pretty=True, live_reload_port=self._app_instance._live_reload_ws_port, live_reload_host=self._app_instance._live_reload_host).encode("utf-8")
                                     else:
                                         html_bytes = str(response_data).encode("utf-8")
                                     
@@ -322,31 +515,30 @@ class Syqlorix(Node):
                                     self.end_headers()
                                     self.wfile.write(html_bytes)
                                     return
-                                except Exception as e:
-                                    print(f"{C.ERROR}Error in route handler for '{request.path}': {e}{C.END}", file=sys.stderr)
-                                    self.send_error(500, f"Internal Server Error: {e}")
-                                    return
 
-                        static_dir_abs = (project_root / 'static').resolve()
-                        file_name = 'index.html' if request.path == '/' else request.path.lstrip('/')
-                        
-                        try:
-                            static_file_path = (static_dir_abs / file_name).resolve(strict=True)
-
-                            if static_file_path.is_file() and static_file_path.is_relative_to(static_dir_abs):
-                                mime_type, _ = mimetypes.guess_type(static_file_path)
+                            # Check for static files
+                            file_name = 'index.html' if request.path == '/' else request.path.lstrip('/')
+                            static_file_path = (project_root / file_name).resolve()
+                            if (static_file_path.is_file() and 
+                                static_file_path.is_relative_to(project_root) and 
+                                static_file_path.suffix in {'.html', '.css', '.js', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.woff', '.woff2'}):
                                 self.send_response(200)
+                                mime_type, _ = mimetypes.guess_type(static_file_path)
                                 self.send_header('Content-type', mime_type or 'application/octet-stream')
-                                if not is_head: self.send_header("Content-length", str(static_file_path.stat().st_size))
+                                if not is_head:
+                                    self.send_header("Content-length", str(static_file_path.stat().st_size))
                                 self.end_headers()
                                 if not is_head:
                                     with open(static_file_path, 'rb') as f:
                                         self.wfile.write(f.read())
                                 return
-                        except (FileNotFoundError, ValueError, NotADirectoryError):
-                            pass
                             
-                        self._send_syqlorix_404(request.path)
+                            # Custom 404 page
+                            self._send_syqlorix_404(request.path)
+
+                        except Exception as e:
+                            print(f"{C.ERROR}Error in user code: {e}{C.END}", file=sys.stderr)
+                            self.send_error(500, f"Internal Server Error: {e}")
 
                     def do_GET(self): self._handle_request()
                     def do_POST(self): self._handle_request()
@@ -371,26 +563,28 @@ class Syqlorix(Node):
                     else:
                         print(f"\n{C.ERROR}ERROR: All attempts ({max_port_attempts}) to find an available port failed.{C.END}", file=sys.stderr)
                         sys.exit(1)
-                else: raise
+                else:
+                    raise
 
         self._live_reload_ws_port = current_port + 1
         self._live_reload_enabled = live_reload
         self._live_reload_host = host
+
+        # Show route discovery
+        if app_instance and app_instance._routes:
+            route_paths = [path for regex, methods, func in app_instance._routes for path in regex.pattern.split('$')[0:1]]
+            print(f"🌍 {C.INFO}Routes discovered: {', '.join(sorted(route_paths))}{C.END}")
+        else:
+            print(f"ℹ️  {C.INFO}No routes defined. Serving default content for all requests.{C.END}")
 
         http_thread = threading.Thread(target=http_server.serve_forever, daemon=True)
         http_thread.start()
         print(f"🚀 {C.SUCCESS}Syqlorix server running on {C.BOLD}http://{host}:{current_port}{C.END}")
 
         if live_reload:
-            reload_thread = threading.Thread(target=self._live_reload_manager, args=(host, self._live_reload_ws_port, watch_dirs), daemon=True)
+            reload_thread = threading.Thread(target=self._live_reload_manager, args=(host, self._live_reload_ws_port, watch_dirs, file_path), daemon=True)
             reload_thread.start()
         
-        if self._routes:
-            route_paths = [path for regex, methods, func in self._routes for path in regex.pattern.split('$')[0:1]]
-            print(f"🌍 {C.INFO}Routes discovered: {', '.join(sorted(route_paths))}{C.END}")
-        else:
-            print(f"ℹ️  {C.INFO}No routes defined. Serving default content for all requests.{C.END}")
-
         print(f"   {C.MUTED}Press Ctrl+C to stop.{C.END}")
         
         try:
@@ -421,9 +615,9 @@ input_ = globals()['input']
 
 doc = Syqlorix()
 
-# I only use this when I want to add some customs that are requested
+# I only use this when I want to add some customs that are requested      
 __all__ = [
-    'Node', 'Syqlorix', 'Component', 'Comment', 'Request',
+    'Node', 'Syqlorix', 'Component', 'Comment', 'Request', 'Blueprint', 'redirect',
     'head', 'body', 'style', 'script',
     'doc',
     'input_',

@@ -2,6 +2,16 @@
 *.pyc
 __pycache__/
 
+# Testing Directories
+/syqlorix-test/
+/converter/
+/demo_test/
+/team_testing/
+/demo/
+test.py
+test1.py
+/report-analysis/
+
 # Distribution / packaging
 build/
 dist/
