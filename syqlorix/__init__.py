@@ -13,6 +13,8 @@ import websockets
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import subprocess
+import requests
+from urllib.parse import urljoin
 from jsmin import jsmin
 from cssmin import cssmin
 from syqlorix import *
@@ -303,6 +305,7 @@ class Syqlorix(Node):
         self._routes = []
         self._middleware = []
         self._error_handlers = {}
+        self._dev_proxies = {}
         self._live_reload_ws_port = None
         self._live_reload_host = "127.0.0.1"
         self._live_reload_enabled = True
@@ -335,6 +338,11 @@ class Syqlorix(Node):
 
     def test_client(self):
         return TestClient(self)
+    
+    def proxy(self, path_prefix, target_url):
+        """Define a development proxy rule for syqlorix run server."""
+        self._dev_proxies[path_prefix] = target_url.rstrip('/')
+        return self
 
     def render(self, pretty=True, live_reload_port=None, live_reload_host=None):
         html_string = "<!DOCTYPE html>\n" + super().render(indent=0, pretty=pretty)
@@ -505,6 +513,50 @@ class Syqlorix(Node):
                                 self.send_response(204)
                                 self.end_headers()
                                 return
+
+                            # Check for dev proxy rules (only in development)
+                            for prefix, target_url in self._app_instance._dev_proxies.items():
+                                if request.path.startswith(prefix):
+                                    proxy_url = urljoin(target_url + '/', request.path[len(prefix):].lstrip('/'))
+                                    try:
+                                        # Forward the request
+                                        headers = dict(request.headers)
+                                        headers.pop('Host', None)  # Remove original Host header
+                                        
+                                        response = requests.request(
+                                            method=request.method,
+                                            url=proxy_url,
+                                            headers=headers,
+                                            params=request.query_params,
+                                            data=request.body if request.body else None,
+                                            allow_redirects=False,
+                                            stream=True
+                                        )
+                                        
+                                        # Send response back to client
+                                        self.send_response(response.status_code)
+                                        
+                                        # Add CORS header for local development
+                                        self.send_header('Access-Control-Allow-Origin', '*')
+                                        
+                                        # Forward headers from target
+                                        for key, value in response.headers.items():
+                                            if key.lower() not in ['content-encoding', 'transfer-encoding', 'connection']:
+                                                self.send_header(key, value)
+                                        
+                                        # Handle content length
+                                        content = response.content
+                                        self.send_header('Content-length', str(len(content)))
+                                        self.end_headers()
+                                        
+                                        # Send response body
+                                        self.wfile.write(content)
+                                        return
+                                        
+                                    except Exception as e:
+                                        print(f"{C.ERROR}Proxy error: {e}{C.END}")
+                                        self.send_error(502, f"Bad Gateway: {e}")
+                                        return
 
                             for route_regex, methods, handler_func in self._app_instance._routes:
                                 match = route_regex.match(request.path)
