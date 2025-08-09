@@ -4,6 +4,7 @@ import threading
 import mimetypes
 import re
 import json
+import fnmatch
 import hashlib
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
@@ -38,6 +39,20 @@ LIVE_RELOAD_SCRIPT = """
     }})();
 </script>
 """
+
+def _load_access_policy(project_root: Path):
+    policy_file = project_root / ".syqlorix"
+    whitelist, blacklist = set(), set()
+    if policy_file.exists():
+        for raw in policy_file.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+            if line.startswith("-"):
+                blacklist.add(line[1:].strip())
+            else:
+                whitelist.add(line)
+    return whitelist, blacklist
 
 class Node:
     _SELF_CLOSING_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
@@ -391,6 +406,20 @@ class Syqlorix(Node):
         print(f"🔥 {C.PRIMARY}Starting server for {C.BOLD}{Path(file_path).name}{C.END}...")
 
         project_root = Path(file_path).parent.resolve()
+
+        whitelist, blacklist = _load_access_policy(project_root)
+        def _is_static_allowed(file_path: Path) -> bool:
+            rel = file_path.relative_to(project_root).as_posix()
+            for pat in blacklist:
+                if fnmatch.fnmatch(rel, pat):
+                    return False
+            if whitelist:
+                return any(fnmatch.fnmatch(rel, pat) for pat in whitelist)
+            return file_path.suffix.lower() in {
+                '.html','.css','.js','.svg','.png','.jpg','.jpeg',
+                '.gif','.ico','.woff','.woff2','.json','.pdf'
+            }
+
         watch_dirs = [project_root]
 
         # Load the app initially to discover routes
@@ -519,9 +548,11 @@ class Syqlorix(Node):
                             # Check for static files
                             file_name = 'index.html' if request.path == '/' else request.path.lstrip('/')
                             static_file_path = (project_root / file_name).resolve()
-                            if (static_file_path.is_file() and 
-                                static_file_path.is_relative_to(project_root) and 
-                                static_file_path.suffix in {'.html', '.css', '.js', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.woff', '.woff2'}):
+                            if (
+                                static_file_path.is_file()
+                                and static_file_path.is_relative_to(project_root)
+                                and _is_static_allowed(static_file_path)
+                            ):
                                 self.send_response(200)
                                 mime_type, _ = mimetypes.guess_type(static_file_path)
                                 self.send_header('Content-type', mime_type or 'application/octet-stream')

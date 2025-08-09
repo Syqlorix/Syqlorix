@@ -2,7 +2,7 @@
 *.pyc
 __pycache__/
 
-# Testing Directories
+# Testing Directories and Files
 /syqlorix-test/
 /converter/
 /demo_test/
@@ -11,6 +11,10 @@ __pycache__/
 test.py
 test1.py
 /report-analysis/
+cool.png
+cool.py
+.syqlorix
+
 
 # Distribution / packaging
 build/
