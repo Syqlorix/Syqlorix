@@ -48,11 +48,19 @@ It is designed for developers who want to create web UIs and simple APIs without
 
 2.  **Create a file `app.py`:**
     ```python
-    # app.py
     from syqlorix import *
-
-    doc / h1("Hello from Syqlorix!")
-    doc / p("This is a web page generated entirely from Python.")
+    
+    doc = Syqlorix()
+    
+    @doc.route('/')
+    def home(request):
+        return Syqlorix(
+            head(title("Hello")),
+            body(
+                h1("Hello from Syqlorix!"),
+                p("This is a web page generated entirely from Python.")
+            )
+        )
     ```
 
 3.  **Run the development server:**
@@ -68,16 +76,46 @@ It is designed for developers who want to create web UIs and simple APIs without
   <summary><h2><strong>› Click to view Usage Guide</strong></h2></summary>
 
 ### Serving Static Files
+1. Create file `app.py`.  
+2. Drop any file inside the same directory, e.g. `logo.png`.  
+3. Reference it from a route handler:
 
-Create a folder named `static` in your project directory. Any files inside it (e.g., `static/logo.png`, `static/custom.css`) will be served automatically from the root URL path.
+   ```python
+   @doc.route('/')
+   def home(request):
+       return Syqlorix(
+           head(
+               title("Demo"),
+               link(rel="stylesheet", href="/custom.css")
+           ),
+           body(
+               img(src="logo.png", alt="My Logo", width="150")
+           )
+       )
+   ```
 
-```python
-# Reference a static file in your code
-doc / img(src="/logo.png", alt="My Logo")
-doc / link(rel="stylesheet", href="/custom.css")
+*Changes to any files within the directory (e.g., `custom.css`, `logo.png`) will automatically trigger a live reload in your browser.*
+
+#### Whitelisting / Blacklisting Static Files with `.syqlorix`
+
+Drop a file named `.syqlorix` in your project root to control which static files are served.
+
+*Rules (one per line):*  
+- Use glob patterns (`*.pdf`, `docs/**`)  
+- **Whitelist** (allowed) → write the pattern as-is  
+- **Blacklist** (blocked) → prefix the pattern with a minus `-`
+
+Example `.syqlorix`:
 ```
+# Allow everything
+*  # can be a single file too, e.g. - *new-page.py
 
-*Changes to any files within the `static` directory (e.g., `custom.css`, `logo.png`) will automatically trigger a live reload in your browser.*
+# Block sensitive or bulky items
+- secrets/*
+- testings-only/*.py
+- *.png
+- old-page.py
+```
 
 ### Dynamic Routing
 
@@ -149,6 +187,22 @@ Syqlorix comes with a simple and powerful CLI.
     syqlorix build main.py -o index.html --minify
     ```
 
+    
+<details><summary><strong>CLI Reference</strong></summary>
+
+| Command | Purpose |
+|---------|---------|
+| `syqlorix init [file]` | Scaffolds a ready-to-run template (`app.py` by default) |
+| `syqlorix run <file>` | Starts live-reload server on port 8000 (or next free) |
+| `syqlorix build <file>` | Outputs a single **static HTML** file (`dist/index.html`) |
+
+Options  
+- `--port 8080` – start on a specific port  
+- `--no-reload` – disable live-reload  
+- `-o file.html --minify` – custom build name + minify
+
+</details>
+
 </details>
 
 ## Target Use Cases
@@ -165,4 +219,4 @@ Contributions are welcome! Feel free to open issues or submit pull requests on t
 
 ## License
 
-This project is licensed under the MIT License - see the `LICENSE` file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/Syqlorix/Syqlorix/blob/main/LICENSE) file for details.
