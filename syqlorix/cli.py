@@ -215,6 +215,12 @@ def message_form(request):
     
     return page_layout("Message Board", content)
 
+# This block allows you to run the app directly with `python <filename>.py`
+if __name__ == "__main__":
+    # __file__ is the path to the current script
+    # This starts the server with live-reloading enabled by default
+    doc.run(file_path=__file__)
+
 '''
 
 @main.command()
