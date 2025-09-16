@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 2rem;
+}
+h1 {
+    color: #00a8cc;
+    text-shadow: 0 0 5px #00a8cc;
+}
+a {
+    color: #feda6a;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+a:hover {
+    color: #ffffff;
+}
+.container {
+    max-width: 800px;
+    margin: auto;
+    background-color: #16213e;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    text-align: center;
+}

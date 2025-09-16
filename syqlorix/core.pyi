@@ -2,6 +2,11 @@ from typing import Any, List, Dict, Tuple, Type, Set
 from http.server import BaseHTTPRequestHandler
 import re
 
+
+class Plugin:
+    def on_node_init(self, node: "Node") -> None:...
+
+plugins: list[Plugin]
 class Node:
     _SELF_CLOSING_TAGS: Set[str]
     tag_name: str

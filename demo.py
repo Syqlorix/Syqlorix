@@ -1,10 +1,11 @@
 # Import all the necessary components from syqlorix
 from syqlorix import (
-    doc, Component,
+    Syqlorix, Component,
     head, body, title, meta, link, style, script,
     h1, p, div, a, img, br, code
 )
-
+from syqlorix.tailwind import tailwind, load_plugin
+load_plugin()
 # ---------------------------------------------------------
 # 1.  Re-usable Footer component
 # ---------------------------------------------------------
@@ -23,35 +24,6 @@ class Footer(Component):
 # 2.  Embedded CSS (no external file needed for this demo)
 # ---------------------------------------------------------
 main_css = """
-body {
-    background-color: #1a1a2e;
-    color: #e0e0e0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    margin: 0;
-    padding: 2rem;
-}
-h1 {
-    color: #00a8cc;
-    text-shadow: 0 0 5px #00a8cc;
-}
-a {
-    color: #feda6a;
-    text-decoration: none;
-    transition: color 0.2s;
-}
-a:hover {
-    color: #ffffff;
-}
-.container {
-    max-width: 800px;
-    margin: auto;
-    background-color: #16213e;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    text-align: center;
-}
 .logo {
     max-width: 100px;
     margin-bottom: 1rem;
@@ -75,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Syqlorix page loaded and is interactive.');
 });
 """
-
+doc = Syqlorix()
 # ---------------------------------------------------------
 # 4.  Build the page tree with the handy '/' operator
 # ---------------------------------------------------------
@@ -83,6 +55,7 @@ doc / head(
     title("Syqlorix - The Future is Now"),
     meta(charset="UTF-8"),
     meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+    tailwind("demo.css"),
     style(main_css)
 ) / body(
     div(
@@ -101,7 +74,8 @@ doc / head(
         class_="container"
     ),
     Footer(),
-    script(interactive_js)
+    script(interactive_js),
+    class_="bg-[#1a1a2e] text-[#e0e0e0]"
 )
 
 # ---------------------------------------------------------
