@@ -4,7 +4,8 @@ import re
 
 
 class Plugin:
-    def on_node_init(self, node: "Node") -> None:...
+    def on_node_init(self, node: "Node") -> None: ...
+    def load(self) -> None: ...
 
 plugins: list[Plugin]
 class Node:

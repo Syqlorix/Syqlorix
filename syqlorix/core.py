@@ -60,7 +60,16 @@ def _load_access_policy(project_root: Path):
     return whitelist, blacklist
 
 class Plugin:
-    def on_node_init(self, node: "Node") -> None:...
+    def __init__(self):
+        self.loaded: bool = False
+
+    def on_node_init(self, node: "Node") -> None:
+        pass
+
+    def load(self):
+        if self in plugins: plugins.remove(self)
+        plugins.append(self)
+        self.loaded = True
 
 plugins: list[Plugin] = []
 

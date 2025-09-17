@@ -4,10 +4,19 @@ from syqlorix import (
     head, body, title, meta, link, style, script,
     h1, p, div, a, img, br, code
 )
-from syqlorix.tailwind import tailwind, load_plugin
-load_plugin()
+from syqlorix.tailwind import tailwind, load_plugin, set_scope
+
 # ---------------------------------------------------------
-# 1.  Re-usable Footer component
+# 1.  Initialisation
+# ---------------------------------------------------------
+
+doc = Syqlorix()
+
+load_plugin() # load tailwind plugin
+set_scope("demo")
+
+# ---------------------------------------------------------
+# 2.  Re-usable Footer component
 # ---------------------------------------------------------
 class Footer(Component):
     def __init__(self):
@@ -21,7 +30,7 @@ class Footer(Component):
         )
 
 # ---------------------------------------------------------
-# 2.  Embedded CSS (no external file needed for this demo)
+# 3.  Embedded CSS (no external file needed for this demo)
 # ---------------------------------------------------------
 main_css = """
 .logo {
@@ -31,7 +40,7 @@ main_css = """
 """
 
 # ---------------------------------------------------------
-# 3.  Tiny interactive JavaScript (embedded)
+# 4.  Tiny interactive JavaScript (embedded)
 # ---------------------------------------------------------
 interactive_js = """
 document.addEventListener('DOMContentLoaded', () => {
@@ -47,15 +56,15 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Syqlorix page loaded and is interactive.');
 });
 """
-doc = Syqlorix()
+
 # ---------------------------------------------------------
-# 4.  Build the page tree with the handy '/' operator
+# 5.  Build the page tree with the handy '/' operator
 # ---------------------------------------------------------
 doc / head(
     title("Syqlorix - The Future is Now"),
     meta(charset="UTF-8"),
     meta(name="viewport", content="width=device-width, initial-scale=1.0"),
-    tailwind("demo.css"),
+    tailwind("demo.css", scope="demo"),
     style(main_css)
 ) / body(
     div(
@@ -75,11 +84,12 @@ doc / head(
     ),
     Footer(),
     script(interactive_js),
-    class_="bg-[#1a1a2e] text-[#e0e0e0]"
+    class_="bg-[#1a1a2e] text-[#e0e0e0]" # tailwind_classes
 )
+set_scope("global")
 
 # ---------------------------------------------------------
-# 5.  EXPOSE the page on the root route so it actually renders
+# 6.  EXPOSE the page on the root route so it actually renders
 # ---------------------------------------------------------
 @doc.route('/')
 def home_page(request):
