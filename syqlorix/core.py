@@ -19,7 +19,7 @@ from jsmin import jsmin
 from cssmin import cssmin
 from .core import *
 
-from typing import TYPE_CHECKING
+from typing import List
 
 
 class C:
@@ -71,7 +71,7 @@ class Plugin:
         plugins.append(self)
         self.loaded = True
 
-plugins: list[Plugin] = []
+plugins: List[Plugin] = []
 
 class Node:
     _SELF_CLOSING_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}

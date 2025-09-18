@@ -8,7 +8,7 @@ from .core import Node, style, Plugin
 import os
 import tempfile
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional, Any, Dict, Set, Tuple
 
 
 # Implementation of tailwind_processor library's TailwindProcessor class (src at
@@ -25,7 +25,7 @@ class SyqlorixTailwindProcessor(TailwindProcessor):
     def __init__(self, version: Optional[str] = None):
         self.version = version or "v3.4.17"
 
-    def _get_environment(self) -> dict[str, Any]:
+    def _get_environment(self) -> Dict[str, Any]:
         env = os.environ.copy()
         env["TAILWINDCSS_VERSION"] = self.version
         return env
@@ -66,7 +66,7 @@ class SyqlorixTailwindProcessor(TailwindProcessor):
         except Exception as e:
             return "", Exception(f"Failed to read output file:\n{e}")
 
-    def process(self, tailwind_classes: set[str], input_path: str = None, config_path: str = None) -> tuple[str, Optional[Exception]]: # type: ignore
+    def process(self, tailwind_classes: Set[str], input_path: str = None, config_path: str = None) -> Tuple[str, Optional[Exception]]: # type: ignore
         """
         Process Tailwind classes into CSS.
 
@@ -145,7 +145,7 @@ class TailwindScope:
         self.changed = True
         self.input = input
         self.config = config
-        self.data: set[str] = set()
+        self.data: Set[str] = set()
         scopes[name] = self
 
     def add(self, *classes) -> None:
@@ -215,7 +215,7 @@ class TailwindScope:
             self.changed = False
         return self.css
 
-scopes: dict[str, TailwindScope] = {}
+scopes: Dict[str, TailwindScope] = {}
 current_scope = TailwindScope("global")
 
 def get_scope(name: Optional[str] = None) -> TailwindScope:

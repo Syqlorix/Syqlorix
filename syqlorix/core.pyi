@@ -7,7 +7,7 @@ class Plugin:
     def on_node_init(self, node: "Node") -> None: ...
     def load(self) -> None: ...
 
-plugins: list[Plugin]
+plugins: List[Plugin]
 class Node:
     _SELF_CLOSING_TAGS: Set[str]
     tag_name: str
