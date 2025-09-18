@@ -1,25 +1,26 @@
-import sys
-import asyncio
-import threading
-import mimetypes
 import re
+import sys
 import json
+import asyncio
 import fnmatch
-import hashlib
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from pathlib import Path
-import urllib.parse
-import websockets
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-import subprocess
 import requests
-from urllib.parse import urljoin
+import mimetypes
+import threading
+import websockets
+
+import urllib.parse
+
 from jsmin import jsmin
 from cssmin import cssmin
-from .core import *
-
 from typing import List
+from pathlib import Path
+
+from urllib.parse import urljoin
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+from .core import *
 
 
 class C:
