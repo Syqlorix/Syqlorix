@@ -40,6 +40,11 @@ dependencies = [
     "requests>=2.25.0"
 ]
 
+[project.optional-dependencies]
+tailwind = [
+  "tailwind-processor"
+]
+
 [project.urls]
 Homepage = "https://github.com/Syqlorix/Syqlorix"
 "Bug Tracker" = "https://github.com/Syqlorix/Syqlorix/issues"

@@ -1,12 +1,22 @@
 # Import all the necessary components from syqlorix
 from syqlorix import (
-    doc, Component,
+    Syqlorix, Component,
     head, body, title, meta, link, style, script,
     h1, p, div, a, img, br, code
 )
+from syqlorix.tailwind import tailwind, load_plugin, set_scope
 
 # ---------------------------------------------------------
-# 1.  Re-usable Footer component
+# 1.  Initialisation
+# ---------------------------------------------------------
+
+doc = Syqlorix()
+
+load_plugin() # load tailwind plugin
+set_scope("demo")
+
+# ---------------------------------------------------------
+# 2.  Re-usable Footer component
 # ---------------------------------------------------------
 class Footer(Component):
     def __init__(self):
@@ -20,38 +30,9 @@ class Footer(Component):
         )
 
 # ---------------------------------------------------------
-# 2.  Embedded CSS (no external file needed for this demo)
+# 3.  Embedded CSS (no external file needed for this demo)
 # ---------------------------------------------------------
 main_css = """
-body {
-    background-color: #1a1a2e;
-    color: #e0e0e0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    margin: 0;
-    padding: 2rem;
-}
-h1 {
-    color: #00a8cc;
-    text-shadow: 0 0 5px #00a8cc;
-}
-a {
-    color: #feda6a;
-    text-decoration: none;
-    transition: color 0.2s;
-}
-a:hover {
-    color: #ffffff;
-}
-.container {
-    max-width: 800px;
-    margin: auto;
-    background-color: #16213e;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    text-align: center;
-}
 .logo {
     max-width: 100px;
     margin-bottom: 1rem;
@@ -59,7 +40,7 @@ a:hover {
 """
 
 # ---------------------------------------------------------
-# 3.  Tiny interactive JavaScript (embedded)
+# 4.  Tiny interactive JavaScript (embedded)
 # ---------------------------------------------------------
 interactive_js = """
 document.addEventListener('DOMContentLoaded', () => {
@@ -77,12 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
 """
 
 # ---------------------------------------------------------
-# 4.  Build the page tree with the handy '/' operator
+# 5.  Build the page tree with the handy '/' operator
 # ---------------------------------------------------------
 doc / head(
     title("Syqlorix - The Future is Now"),
     meta(charset="UTF-8"),
     meta(name="viewport", content="width=device-width, initial-scale=1.0"),
+    tailwind("demo.css", scope="demo"),
     style(main_css)
 ) / body(
     div(
@@ -101,11 +83,13 @@ doc / head(
         class_="container"
     ),
     Footer(),
-    script(interactive_js)
+    script(interactive_js),
+    class_="bg-[#1a1a2e] text-[#e0e0e0]" # tailwind_classes
 )
+set_scope("global")
 
 # ---------------------------------------------------------
-# 5.  EXPOSE the page on the root route so it actually renders
+# 6.  EXPOSE the page on the root route so it actually renders
 # ---------------------------------------------------------
 @doc.route('/')
 def home_page(request):
