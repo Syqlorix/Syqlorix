@@ -451,30 +451,14 @@ class Syqlorix(Node):
 
         watch_dirs = [project_root]
 
-        # Load the app initially to discover routes
-        try:
-            import importlib.util
-            spec = importlib.util.spec_from_file_location(Path(file_path).stem, str(file_path))
-            module = importlib.util.module_from_spec(spec)
-            sys.path.insert(0, str(Path(file_path).parent))
-            spec.loader.exec_module(module)
-            sys.path.pop(0)
-            
-            if hasattr(module, 'doc') and isinstance(module.doc, Syqlorix):
-                app_instance = module.doc
-            else:
-                app_instance = None
-        except Exception as e:
-            print(f"{C.ERROR}Error loading app: {e}{C.END}")
-            app_instance = None
+        app_instance = self
 
         for attempt in range(max_port_attempts):
             try:
                 class SyqlorixRequestHandler(BaseHTTPRequestHandler):
-                    _app_instance = None
+                    _app_instance = app_instance
 
                     def __init__(self, *args, **kwargs):
-                        self._load_app(file_path)
                         super().__init__(*args, **kwargs)
 
                     def _load_app(self, file_path):
@@ -665,7 +649,7 @@ class Syqlorix(Node):
                         print(f"{C.WARNING}Port {current_port} already in use. Trying {current_port + 2}...{C.END}")
                         current_port += 2
                     else:
-                        print(f"\n{C.ERROR}ERROR: All attempts ({max_port_attempts}) to find an available port failed.{C.END}", file=sys.stderr)
+                        print("\n" + f"{C.ERROR}ERROR: All attempts ({max_port_attempts}) to find an available port failed.{C.END}", file=sys.stderr)
                         sys.exit(1)
                 else:
                     raise
@@ -694,7 +678,7 @@ class Syqlorix(Node):
         try:
             http_thread.join()
         except KeyboardInterrupt:
-            print(f"\n🛑 {C.WARNING}Shutting down...{C.END}")
+            print("\n" + f"🛑 {C.WARNING}Shutting down...{C.END}")
         finally:
             http_server.shutdown()
             http_server.server_close()

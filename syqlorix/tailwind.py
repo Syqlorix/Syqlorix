@@ -64,7 +64,7 @@ class SyqlorixTailwindProcessor(TailwindProcessor):
         try:
             return output_path.read_text(), None
         except Exception as e:
-            return "", Exception(f"Failed to read output file:\n{e}")
+            return "", Exception(f"Failed to read output file:\n" + str(e))
 
     def process(self, tailwind_classes: Set[str], input_path: str = None, config_path: str = None) -> Tuple[str, Optional[Exception]]: # type: ignore
         """
@@ -109,7 +109,7 @@ class SyqlorixTailwindProcessor(TailwindProcessor):
 
                 return result, None
         except Exception as e:
-            return "", Exception(f"Failed to process tailwind classes:\n{e}")
+            return "", Exception(f"Failed to process tailwind classes:\n" + str(e))
 
 tp = SyqlorixTailwindProcessor()
 tp.process({"x"}) # to install tailwind executable.
@@ -209,7 +209,7 @@ class TailwindScope:
             self.config
         )
         if err:
-            print(f"\033[91m Error while generating CSS: {err}\n Defaulting to previous CSS!")
+            print(f"\033[91m Error while generating CSS: {err}\n" + " Defaulting to previous CSS!")
         else:
             self.css = out
             self.changed = False

@@ -51,7 +51,7 @@ def find_doc_instance(file_path):
             click.echo(f"{C.ERROR}Error: Could not find a 'doc = Syqlorix()' instance in '{file_path}'.{C.END}")
             sys.exit(1)
     except Exception as e:
-        click.echo(f"{C.ERROR}Error loading '{file_path}':\n{e}{C.END}")
+        click.echo(f"{C.ERROR}Error loading '{file_path}':\n" + str(e) + C.END)
         sys.exit(1)
 
 @click.group(context_settings=dict(help_option_names=['-h', '--help']))
@@ -174,6 +174,8 @@ def page_layout(title_text, content_node):
             )
         )
     )
+
+doc = Syqlorix()
 
 @doc.route('/')
 def home_page(request):
