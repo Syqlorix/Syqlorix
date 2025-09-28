@@ -71,71 +71,48 @@ def run(file, host, port, no_reload):
 
 @main.command()
 @click.argument('file', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
-@click.option('--output', '-o', 'output_path_str', default=None, help='Output directory name. Defaults to "dist".')
-@click.option('--minify', is_flag=True, default=False, help='Minify HTML, and inline CSS/JS.')
-def build(file, output_path_str, minify):
+@click.option('--output', '-o', 'output_path_str', default='dist', help='Output directory name.')
+def build(file, output_path_str):
+    """Build a static version of the Syqlorix application."""
+    import shutil
+    from .core import _load_app_from_file
 
-    if not file.endswith('.py'):
-        click.echo(f"{C.ERROR}Error: Input file must be a Python script.{C.END}")
+    click.echo(SYQLORIX_BANNER)
+    click.echo(f"🔥 {C.PRIMARY}Starting static build for {C.BOLD}{Path(file).name}{C.END}...")
+
+    app_instance = _load_app_from_file(file)
+    if not app_instance:
+        click.echo(f"❌ {C.ERROR}Build failed: Could not load Syqlorix instance.{C.END}", err=True)
         sys.exit(1)
 
-    path = Path(file)
-    output_dir_name = output_path_str if output_path_str else 'dist'
-    output_path = path.parent / output_dir_name
+    output_path = Path(output_path_str).resolve()
+    project_root = Path(file).parent.resolve()
 
-    click.echo(f"🛠️  {C.PRIMARY}Building static site from {C.BOLD}{path.name}{C.END}...")
+    # Clean and create output directory
+    if output_path.exists():
+        shutil.rmtree(output_path)
+    output_path.mkdir(parents=True, exist_ok=True)
 
-    doc_instance = find_doc_instance(file)
-    if not doc_instance._routes:
-        click.echo(f"{C.WARNING}Warning: No routes found to build.{C.END}")
-        return
+    # Build the app routes
+    app_instance.build(output_path)
 
-    os.makedirs(output_path, exist_ok=True)
-    click.echo(f"   Writing to {C.BOLD}'{output_path}'{C.END}...")
+    # Copy static assets
+    click.echo(f"📂 {C.INFO}Copying static assets...{C.END}")
+    static_extensions = {'.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2'}
+    ignore_dirs = {'.git', 'venv', '__pycache__', output_path.name, '.pytest_cache'}
 
-    for route_regex, methods, handler_func in doc_instance._routes:
-        if 'GET' not in methods:
+    for path in project_root.rglob('*'):
+        is_in_ignored_dir = any(d in path.parts for d in ignore_dirs)
+        if is_in_ignored_dir:
             continue
-
-        route_path = route_regex.pattern.replace('$', '').replace('(?P<', '').replace('>[^/]+)', '')
-        if route_path == '/':
-            file_name = 'index.html'
-        else:
-            file_name = route_path.strip('/') + '.html'
-
-        file_dest = output_path / file_name
-        os.makedirs(file_dest.parent, exist_ok=True)
         
-        class MockRequest:
-            method = 'GET'
-            path = route_path
-            path_full = route_path
-            path_params = {}
-            query_params = {}
-            headers = {}
+        if path.is_file() and path.suffix in static_extensions:
+            dest_path = output_path / path.relative_to(project_root)
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, dest_path)
+            click.echo(f"   -> Copied {C.BOLD}{path.relative_to(project_root)}{C.END}")
 
-        try:
-            response_data = handler_func(MockRequest())
-            if isinstance(response_data, tuple):
-                response_data, _ = response_data
-            
-            html_content = ""
-            if isinstance(response_data, Syqlorix):
-                html_content = response_data.render(pretty=not minify)
-            elif isinstance(response_data, Node):
-                temp_syqlorix = Syqlorix(head(), body(response_data))
-                html_content = temp_syqlorix.render(pretty=not minify)
-            else:
-                html_content = str(response_data)
-
-            with open(file_dest, 'w', encoding='utf-8') as f:
-                f.write(html_content)
-            click.echo(f"   - Built {C.SUCCESS}{route_path}{C.END} -> {C.BOLD}{file_dest.relative_to(path.parent)}{C.END}")
-
-        except Exception as e:
-            click.echo(f"   - {C.ERROR}Failed to build {route_path}: {e}{C.END}")
-
-    click.echo(f"✅ {C.SUCCESS}Success! Static site build complete.{C.END}")
+    click.echo(f"✅ {C.SUCCESS}Build successful! Files are in '{output_path}'.{C.END}")
 
 INIT_TEMPLATE = '''from syqlorix import *
 

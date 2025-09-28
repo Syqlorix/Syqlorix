@@ -16,7 +16,8 @@ cool.py
 .syqlorix
 TESTING.md
 mytestapp.py
-
+test3.py
+/test-demo
 
 # Distribution / packaging
 build/
@@ -33,6 +34,9 @@ sdist/
 .venv/
 venv/
 env/
+pytest.ini
+syqlorix/py.typed
+.flake8
 
 # IDE / Editor specific
 .vscode/
@@ -48,6 +52,7 @@ Thumbs.db
 # Logs
 pip-log.txt
 pip-delete-this-directory.txt
+/LOGS
 
 # Generated HTML from examples
 *.html

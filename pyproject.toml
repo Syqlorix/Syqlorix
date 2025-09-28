@@ -7,17 +7,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "syqlorix"
-version = "1.2.3"
-description = "A hyper-minimalist Python DSL for generating HTML, CSS, and JS in a single file with live reload and dynamic routing."
+version = "1.2.7"
+description = "A hyper-minimalist Python framework for building component-based web UIs and static sites with a pure Python DSL."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT License" }
-keywords = ["html", "css", "javascript", "dsl", "web", "dominate", "flask", "templating", "ui", "live-reload", "routing", "static-server"]
+keywords = ["html", "css", "javascript", "dsl", "web", "components", "state-management", "static-site-generator", "ui", "live-reload", "routing", "static-server"]
 authors = [
   { name = "Karl Benjamin R. Bughaw", email = "benjo@pro.space" }
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -37,7 +37,8 @@ dependencies = [
     "websockets>=12.0",
     "jsmin>=3.0",
     "cssmin>=0.2",
-    "requests>=2.25.0"
+    "requests>=2.25.0",
+    "lxml>=4.6.0"
 ]
 
 [project.optional-dependencies]
@@ -54,4 +55,14 @@ syqlorix = "syqlorix.cli:main"
 
 [tool.setuptools]
 packages = ["syqlorix"]
-package-data = {"syqlorix" = ["*.pyi"]}
+package-data = {"syqlorix" = ["py.typed", "core.pyi"]}
+
+[tool.flake8]
+exclude = [
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    "dist",
+    "build",
+    "syqlorix.egg-info",
+]
