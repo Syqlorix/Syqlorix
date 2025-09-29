@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "syqlorix"
-version = "1.2.7"
+version = "1.2.8"
 description = "A hyper-minimalist Python framework for building component-based web UIs and static sites with a pure Python DSL."
 readme = "README.md"
 requires-python = ">=3.8"

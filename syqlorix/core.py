@@ -195,10 +195,17 @@ def _load_access_policy(project_root: Path):
             line = raw.strip()
             if not line or line.startswith("#"):
                 continue
-            if line.startswith("-"):
-                blacklist.add(line[1:].strip())
+            
+            is_blacklist = line.startswith("-")
+            pattern = line[1:].strip() if is_blacklist else line
+            
+            if pattern.endswith('/'):
+                pattern += '*'
+            
+            if is_blacklist:
+                blacklist.add(pattern)
             else:
-                whitelist.add(line)
+                whitelist.add(pattern)
     return whitelist, blacklist
 
 def _create_generic_error_page():
@@ -675,16 +682,23 @@ class Syqlorix(Node):
             print(f"🔥 {C.PRIMARY}Starting server for {C.BOLD}{Path(file_path).name}{C.END}...")
 
         project_root = Path(file_path).parent.resolve()
+        whitelist, blacklist = _load_access_policy(project_root)
 
         app_instance = self if live_reload else _load_app_from_file(file_path)
 
         class SyqlorixRequestHandler(BaseHTTPRequestHandler):
             _app_instance = app_instance
+            _whitelist = whitelist
+            _blacklist = blacklist
 
             def __init__(self, *args, **kwargs):
                 self.http_port = current_port
                 if live_reload:
                     self.__class__._app_instance = _load_app_from_file(file_path)
+                    # Reload the access policy on each request in live-reload mode
+                    whitelist, blacklist = _load_access_policy(project_root)
+                    self.__class__._whitelist = whitelist
+                    self.__class__._blacklist = blacklist
                 super().__init__(*args, **kwargs)
 
             def _send_syqlorix_404(self, path):
@@ -800,6 +814,16 @@ class Syqlorix(Node):
 
                     file_name = 'index.html' if request.path == '/' else request.path.lstrip('/')
                     static_file_path = (project_root / file_name).resolve()
+
+                    # Enforce access policy for static files
+                    relative_path = static_file_path.relative_to(project_root).as_posix()
+                    is_blacklisted = any(fnmatch.fnmatch(relative_path, pattern) for pattern in self._blacklist)
+                    is_whitelisted = any(fnmatch.fnmatch(relative_path, pattern) for pattern in self._whitelist)
+
+                    if is_blacklisted or (self._whitelist and not is_whitelisted):
+                        self._send_syqlorix_404(request.path)
+                        return
+
                     if static_file_path.is_file() and static_file_path.is_relative_to(project_root):
                         self.send_response(200)
                         mime_type, _ = mimetypes.guess_type(static_file_path)

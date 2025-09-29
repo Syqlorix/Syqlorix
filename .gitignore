@@ -18,6 +18,7 @@ TESTING.md
 mytestapp.py
 test3.py
 /test-demo
+/testing
 
 # Distribution / packaging
 build/
