@@ -1,7 +1,7 @@
 # Syqlorix: Build Hyper-Minimal Web Pages in Pure Python
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Syqlorix/Syqlorix/main/syqlorix-logo.svg" alt="Syqlorix Logo" width="250"/>
+  <img src="https://raw.githubusercontent.com/Syqlorix/Syqlorix/main/syqlorix-logo-anim.svg" alt="Syqlorix Logo" width="250"/>
 </p>
 <div align="center">
 
