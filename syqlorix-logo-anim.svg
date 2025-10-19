@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024px" height="1024px">
+  <path d="M 511.948 48.131 C 513.85 48.214 918.396 271.947 920.359 276.985 C 920.811 278.145 920.201 748.347 920.035 748.704 C 918.581 751.837 515.677 976.221 511.948 976.633 C 508.219 976.221 105.315 751.837 103.861 748.704 C 103.695 748.347 103.085 278.145 103.537 276.985 C 105.5 271.947 510.046 48.214 511.948 48.131 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(42, 42, 42); stroke-linecap: round; transform-box: fill-box; transform-origin: 50% 50%;">
+    <title>Parent</title>
+    <animateTransform type="scale" additive="sum" attributeName="transform" values="1 1;1.1 1.1;1 1;1.1 1.1;1 1" dur="2s" keyTimes="0; 0.25; 0.5; 0.75758; 1" repeatCount="indefinite"/>
+  </path>
+  <g transform="matrix(1, 0, 0, 1, 0.031982, 0)" style="transform-origin: 511.948px 509.638px;">
+    <title>WhiteBackgrounds</title>
+    <path d="M 520.789 331.777 C 520.961 331.754 872.034 272.625 881.659 271.178 C 869.673 263.521 529.651 76.764 521.469 71.505 C 521.462 71.689 520.793 306.225 520.789 331.777 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(218, 218, 218);">
+      <title>TopRight</title>
+    </path>
+    <path d="M 351.44 650.532 L 672.456 650.532 C 670.678 647.298 511.975 362.356 511.948 362.382 C 511.921 362.356 353.218 647.298 351.44 650.532 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(218, 218, 218);">
+      <title>Mid</title>
+    </path>
+    <path d="M 891.29 288.362 C 884.128 288.932 538.231 347.514 526.841 350.146 C 529.064 354.986 688.94 641.582 688.94 641.582 C 688.94 641.582 890.735 289.415 891.29 288.362 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(218, 218, 218);">
+      <title>RightMid</title>
+    </path>
+    <path d="M 701.595 654.986 C 708.008 658.012 902.648 730.878 903.025 730.991 C 902.59 718.811 903.928 314.785 902.591 308.376 C 902.073 309.053 701.595 654.986 701.595 654.986 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(218, 218, 218);">
+      <title>Right</title>
+    </path>
+    <path d="M 352.027 669.137 C 352.142 669.352 511.924 947.687 511.948 947.644 C 511.972 947.687 671.754 669.352 671.869 669.137 L 352.027 669.137 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(218, 218, 218);">
+      <title>BottomMid</title>
+    </path>
+    <path d="M 889.818 747.4 C 722.632 682.763 707.496 676.345 692.131 671.242 C 548.176 922.061 534.789 945.503 534.737 945.578 C 534.76 945.565 889.818 747.4 889.818 747.4 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(218, 218, 218);">
+      <title>BottomRight</title>
+    </path>
+    <path d="M 142.208 71.505 C 142.378 71.528 493.448 130.657 503.078 132.104 C 491.088 139.761 151.068 326.518 142.888 331.777 C 142.878 331.593 142.208 97.057 142.208 71.505 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(218, 218, 218); transform-box: fill-box; transform-origin: 50% 50%;" transform="matrix(-1, 0, 0, -1, -0.00006, 0.000005)">
+      <title>TopRight</title>
+    </path>
+    <path d="M 497.028 641.582 C 489.858 641.012 143.968 582.43 132.578 579.798 C 134.798 574.958 294.678 288.362 294.678 288.362 C 294.678 288.362 496.468 640.529 497.028 641.582 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(218, 218, 218); transform-box: fill-box; transform-origin: 50% 50%;" transform="matrix(-1, 0, 0, -1, -0.000042, -0.000038)">
+      <title>RightMid</title>
+    </path>
+    <path d="M 120.668 384.381 C 127.088 381.355 321.718 308.489 322.098 308.376 C 321.668 320.556 322.998 724.582 321.668 730.991 C 321.148 730.314 120.668 384.381 120.668 384.381 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(218, 218, 218); transform-box: fill-box; transform-origin: 50% 50%;" transform="matrix(-1, 0, 0, -1, -0.000004, -0.000091)">
+      <title>Right</title>
+    </path>
+    <path d="M 489.138 869.42 C 321.948 934.057 306.808 940.475 291.448 945.578 C 147.488 694.759 134.108 671.317 134.048 671.242 C 134.078 671.255 489.138 869.42 489.138 869.42 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(218, 218, 218); transform-box: fill-box; transform-origin: 50% 50%;" transform="matrix(-1, 0, 0, -1, -0.000004, -0.000088)">
+      <title>BottomRight</title>
+    </path>
+  </g>
+  <g style="transform-origin: 511.947px 815.051px;" transform="matrix(1, 0, 0, 1, 0.031982, 0)">
+    <title>BottomTriangles</title>
+    <path d="M 289.538 867.493 C 290.868 867.628 414.588 876.413 414.588 876.413 C 403.078 870.057 196.418 753.688 196.418 753.688 C 196.988 754.615 289.538 867.493 289.538 867.493 Z" style="paint-order: fill; fill: rgb(0, 88, 245); stroke-linecap: round; stroke-miterlimit: 30; stroke-linejoin: round; transform-box: fill-box; transform-origin: 50% 50%;" transform="matrix(-1, 0, 0, -1, 0.000054, 0.00007)">
+      <title>LeftBottomTriangle</title>
+    </path>
+    <path d="M 702.401 762.608 C 703.736 762.473 827.458 753.688 827.458 753.688 C 815.942 760.044 609.284 876.413 609.284 876.413 C 609.857 875.486 702.401 762.608 702.401 762.608 Z" style="paint-order: fill; fill: rgb(0, 88, 245); stroke-linecap: round; stroke-miterlimit: 30; stroke-linejoin: round;">
+      <title>RightBottomTriangle</title>
+    </path>
+  </g>
+  <g style="transform-origin: 511.947px 549.981px;" transform="matrix(1, 0, 0, 1, 0.031982, 0)">
+    <title>SidesTriangles</title>
+    <path d="M 214.158 412.407 C 208.048 422.539 150.128 529.813 146.268 539.885 C 153.018 552.878 209.928 679.924 214.088 687.555 C 215.018 686.596 214.158 412.407 214.158 412.407 Z" style="stroke-linecap: round; stroke-miterlimit: 30; stroke-linejoin: round; transform-box: fill-box; transform-origin: 50% 50%;" fill="#0058F5" transform="matrix(-1, 0, 0, -1, 0.000015, 0.000003)">
+      <title>RightTriangle</title>
+    </path>
+    <path d="M 877.231 687.555 C 871.124 677.423 813.206 570.149 809.347 560.077 C 816.089 547.084 873.001 420.038 877.165 412.407 C 878.097 413.366 877.231 687.555 877.231 687.555 Z" style="stroke-linecap: round; stroke-miterlimit: 30; stroke-linejoin: round;" fill="#0058F5">
+      <title>RightTriangle</title>
+    </path>
+  </g>
+  <g style="transform-origin: 511.948px 184.67px;" transform="matrix(1, 0, 0, 1, 0.031982, 0)">
+    <title>TopTriangles</title>
+    <path d="M 242.158 246.081 C 261.128 234.299 451.158 129.368 462.138 123.043 L 327.438 130.607 C 317.498 142.913 242.158 246.081 242.158 246.081 Z" style="stroke-linecap: round; stroke-miterlimit: 30; stroke-linejoin: round; transform-box: fill-box; transform-origin: 50% 50%;" fill="#2C2C2C" transform="matrix(-1, 0, 0, -1, 0.000013, -0.000029)">
+      <title>LeftTopTriangle</title>
+    </path>
+    <path d="M 561.732 123.043 C 580.703 134.825 770.734 239.756 781.713 246.081 L 647.011 238.517 C 637.072 226.211 561.732 123.043 561.732 123.043 Z" style="stroke-linecap: round; stroke-miterlimit: 30; stroke-linejoin: round;" fill="#2C2C2C">
+      <title>RightTopTriangle</title>
+    </path>
+  </g>
+</svg>
