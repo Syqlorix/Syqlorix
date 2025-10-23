@@ -33,12 +33,15 @@ jobs:
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings.
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --statistics --ignore=E501
         
     - name: Test with pytest
       run: |
         # This will run any files named test_*.py or *_test.py
-        pytest
+        pytest tests/test_app.py tests/test_core.py tests/test_import.py
+    - name: Test CLI with pytest
+      run: |
+        pytest tests/test_cli.py
 
     - name: Build distribution
       run: |

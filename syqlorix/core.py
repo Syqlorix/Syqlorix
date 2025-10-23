@@ -596,7 +596,7 @@ class Syqlorix(Node):
             except Exception as e:
                 print(f"  {C.ERROR}Error rendering path {path}: {e}{C.END}")
 
-    def render(self, pretty=True, live_reload=False, ws_port=None, http_port=None):
+    def render(self, indent=0, pretty=True, live_reload=False, ws_port=None, http_port=None):
         html_string = "<!DOCTYPE html>\n" + super().render(indent=0, pretty=pretty)
         if live_reload and ws_port and http_port:
             script_tag = LIVE_RELOAD_SCRIPT.format(http_port=http_port, ws_port=ws_port)
