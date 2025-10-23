@@ -1,4 +1,5 @@
-from syqlorix import *
+from syqlorix import doc
+from syqlorix.templating import *
 
 # Define common CSS that can be reused across pages
 common_css = style("""
@@ -19,21 +20,20 @@ common_css = style("""
 
 # Define a reusable template for all pages
 def page_layout(title_text, content_node):
-    return Syqlorix(
+    return html(
         head(
             title(title_text),
             common_css,
             Comment("Live-reload script is injected automatically by the dev server")
         ),
         body(
-            div(
+            div.container(
                 nav(
                     a("Home", href="/"),
                     a("Dynamic Route", href="/user/Syqlorix"),
                     a("Form Example", href="/message"),
                 ),
-                content_node,
-                class_="container"
+                content_node
             )
         )
     )
