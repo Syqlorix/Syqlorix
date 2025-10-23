@@ -1,5 +1,5 @@
 from typing import Type, Iterable, Optional
-from .core import Node, Component
+from .core import Node
 
 class NodeWrapper:
   _classlist: set
@@ -21,7 +21,7 @@ head: NodeWrapper
 body: NodeWrapper
 style: NodeWrapper
 script: NodeWrapper
-Component: Node
+Component: Type[Node]
 a: NodeWrapper
 abbr: NodeWrapper
 address: NodeWrapper
