@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1024px" height="1024px">
-  <path d="M 511.948 48.131 C 513.85 48.214 918.396 271.947 920.359 276.985 C 920.811 278.145 920.201 748.347 920.035 748.704 C 918.581 751.837 515.677 976.221 511.948 976.633 C 508.219 976.221 105.315 751.837 103.861 748.704 C 103.695 748.347 103.085 278.145 103.537 276.985 C 105.5 271.947 510.046 48.214 511.948 48.131 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(42, 42, 42); stroke-linecap: round;" transform="matrix(1, 0, 0, 1, 0, -0.00001144)">
+  <path d="M 511.948 48.131 C 513.85 48.214 918.396 271.947 920.359 276.985 C 920.811 278.145 920.201 748.347 920.035 748.704 C 918.581 751.837 515.677 976.221 511.948 976.633 C 508.219 976.221 105.315 751.837 103.861 748.704 C 103.695 748.347 103.085 278.145 103.537 276.985 C 105.5 271.947 510.046 48.214 511.948 48.131 Z" style="paint-order: fill; fill-rule: nonzero; filter: none; stroke-miterlimit: 30; stroke-linejoin: round; fill: rgb(42, 42, 42); stroke-linecap: round; transform-box: fill-box; transform-origin: 50% 50%;">
     <title>Parent</title>
+    <animateTransform type="scale" additive="sum" attributeName="transform" values="1 1;1.1 1.1;1 1;1.1 1.1;1 1" dur="2s" keyTimes="0; 0.25; 0.5; 0.75758; 1" repeatCount="indefinite"/>
   </path>
   <g transform="matrix(1, 0, 0, 1, 0.031982, 0)" style="transform-origin: 511.948px 509.638px;">
     <title>WhiteBackgrounds</title>

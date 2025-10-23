@@ -37,13 +37,16 @@ dependencies = [
     "websockets>=12.0",
     "jsmin>=3.0",
     "cssmin>=0.2",
-    "requests>=2.25.0",
-    "lxml>=4.6.0"
+    "requests>=2.25.0"
 ]
 
 [project.optional-dependencies]
 tailwind = [
   "tailwind-processor"
+]
+full = [
+  "syqlorix",
+  "syqlorix[tailwind]"
 ]
 
 [project.urls]
