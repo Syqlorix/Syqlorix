@@ -19,6 +19,10 @@ mytestapp.py
 test3.py
 /test-demo
 /testing
+app.py
+test2025-10-23.py
+type_hint_test.py
+component_example.py
 
 # Distribution / packaging
 build/
@@ -38,6 +42,7 @@ env/
 pytest.ini
 syqlorix/py.typed
 .flake8
+mypy.ini
 
 # IDE / Editor specific
 .vscode/
