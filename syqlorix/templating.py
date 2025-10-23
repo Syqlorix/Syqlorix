@@ -29,11 +29,8 @@ __all__ = ["NodeWrapper", "html"]
 
 for i_ in core.__all__:
   try:
-    if issubclass(getattr(core, i_), core.Node):
-      globals()[i_] = NodeWrapper(getattr(core, i_)) if i_ not in ("Component", "Syqlorix") else getattr(core, i_)
+    if i_ != "Syqlorix" and issubclass(getattr(core, i_), core.Node):
+      globals()[i_] = NodeWrapper(getattr(core, i_)) if i_ not in ("Component",) else getattr(core, i_)
       __all__.append(i_)
   except TypeError:
     continue
-
-del Syqlorix # type: ignore
-__all__.remove("Syqlorix")
