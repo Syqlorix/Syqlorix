@@ -10,7 +10,7 @@ class NodeWrapper:
     
   def __call__(self, *children, **attrs):
     attrs["class_"]=" ".join({*self._classlist, *attrs.pop("class_","").split(" "), *attrs.pop("class","").split(" ")})
-    return self._node(*children, **attrs)
+    return self._node(*children, **{**self._attrs, **attrs})
     
   def __getattr__(self, n):
     return self.__class__(self._node, {*self._classlist, n}, **self._attrs)
