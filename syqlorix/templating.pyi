@@ -1,13 +1,15 @@
-from typing import Type, Iterable, Optional
+from typing import Type, Iterable, Optional, Dict
 from .core import Node
 
 class NodeWrapper:
   _classlist: set
-  _node: NodeWrapper
+  _node: Node
+  _attrs: Dict[str, str]
   def __init__(
     self,
-    node: NodeWrapper,
-    classes: Optional[Iterable[str]] = None
+    node: Node,
+    classes: Optional[Iterable[str]] = None,
+    **attrs: Dict[str, str]
   ) -> None: ...
     
   def __call__(self, *children, **attrs) -> Node: ...
@@ -16,7 +18,14 @@ class NodeWrapper:
   def __repr__(self) -> str: ...
   __str__ = __repr__
 
-html: NodeWrapper
+def _(query: str, **kw: Dict[str, str]) -> NodeWrapper: ...
+
+class html(NodeWrapper):
+  class _node(Node):
+    def render(self, *args, doctype=True, **kwargs) -> str: ...
+
+html = html()
+
 head: NodeWrapper
 body: NodeWrapper
 style: NodeWrapper
@@ -117,3 +126,4 @@ var: NodeWrapper
 video: NodeWrapper
 br: NodeWrapper
 hr: NodeWrapper
+
