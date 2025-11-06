@@ -1,6 +1,20 @@
 # Syqlorix: Build Hyper-Minimal Web Pages in Pure Python
 
 <p align="center">
+  <a href="README.md">English</a> |
+  <a href="mds/README-fil.md">Filipino</a> |
+  <a href="mds/README-ceb.md">Cebuano</a> |
+  <a href="mds/README-zh-Hans.md">简体中文</a> |
+  <a href="mds/README-ko.md">한국어</a> |
+  <a href="mds/README-es.md">Español</a> |
+  <a href="mds/README-fr.md">Français</a> |
+  <a href="mds/README-de.md">Deutsch</a> |
+  <a href="mds/README-ja.md">日本語</a> |
+  <a href="mds/README-pt.md">Português</a> |
+  <a href="mds/README-ru.md">Русский</a>
+</p>
+
+<p align="center">
   <img src="https://raw.githubusercontent.com/Syqlorix/Syqlorix/main/syqlorix-logo-anim.svg" alt="Syqlorix Logo" width="250"/>
 </p>
 <div align="center">
