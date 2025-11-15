@@ -25,7 +25,7 @@ class html(core.Node):
   def render(self, *args, doctype=True, **kwargs):
     return ("<!DOCTYPE html>\n" if doctype else "")+super().render(*args, **kwargs)
 
-def _(query, **kw):
+def _(query: str = "", **kw) -> NodeWrapper:
   kw.update(dict(classes = None))
   if "#" in query:
     query, kw["id"] = query.split("#")

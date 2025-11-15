@@ -282,6 +282,8 @@ class Node:
         return " " + " ".join(parts)
 
     def render(self, indent=0, pretty=True):
+        from .templating import NodeWrapper
+        
         pad = "  " * indent if pretty else ""
         attrs = self._format_attrs()
         if not self.tag_name:
@@ -291,6 +293,8 @@ class Node:
         nl, inner_pad = ("\n", "  " * (indent + 1)) if pretty else ("", "")
         html = f"{pad}<{self.tag_name}{attrs}>{nl}"
         for child in self.children:
+            if isinstance(child, NodeWrapper):
+                child = child()
             if isinstance(child, Node):
                 html += child.render(indent + 1, pretty)
             else:
