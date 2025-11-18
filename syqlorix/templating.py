@@ -41,7 +41,7 @@ def _(query: str = "", **kw) -> NodeWrapper:
   return NodeWrapper(type(tag, (core.Node,), {}), **kw)
 
 
-__all__ = ["NodeWrapper", "html"]
+__all__ = ["NodeWrapper", "html", "_"]
 
 for i_ in core.__all__:
   try:
