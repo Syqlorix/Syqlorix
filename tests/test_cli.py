@@ -43,9 +43,9 @@ def test_run_command():
     runner = CliRunner()
     # This is a bit tricky to test as it starts a server.
     # I will just check if the command can be invoked without errors.
-    result = runner.invoke(main, ['run', '--help'])
+    result = runner.invoke(main, ['run', '--help'], prog_name='syqlorix')
     assert result.exit_code == 0
-    assert 'Usage: main run [OPTIONS] FILE' in result.output
+    assert 'Usage: syqlorix run [OPTIONS] FILE' in result.output
 
 def test_build_command():
     runner = CliRunner()
@@ -57,4 +57,10 @@ def test_build_command():
         assert result.exit_code == 0
         assert 'Build successful' in result.output
         assert os.path.exists('dist/index.html')
+
+def test_help_alias_command():
+    runner = CliRunner()
+    result = runner.invoke(main, ['-help'], prog_name='syqlorix')
+    assert result.exit_code == 0
+    assert 'Usage: syqlorix [OPTIONS] COMMAND [ARGS]...' in result.output
 

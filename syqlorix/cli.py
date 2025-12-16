@@ -54,7 +54,7 @@ def find_doc_instance(file_path):
         click.echo(f"{C.ERROR}Error loading '{file_path}':\n" + str(e) + C.END)
         sys.exit(1)
 
-@click.group(context_settings=dict(help_option_names=['-h', '--help']))
+@click.group(context_settings=dict(help_option_names=['-h', '--help', '-help']))
 @click.version_option(version=PACKAGE_VERSION, prog_name="syqlorix")
 @click.option('--debug/--no-debug', default=False, help='Enable debug output.')
 @click.pass_context
