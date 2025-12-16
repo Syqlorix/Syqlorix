@@ -56,26 +56,38 @@ def find_doc_instance(file_path):
 
 @click.group(context_settings=dict(help_option_names=['-h', '--help']))
 @click.version_option(version=PACKAGE_VERSION, prog_name="syqlorix")
-def main():
-    pass
+@click.option('--debug/--no-debug', default=False, help='Enable debug output.')
+@click.pass_context
+def main(ctx, debug):
+    ctx.obj = {'DEBUG': debug}
 
 @main.command()
 @click.argument('file', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--host', '-H', default='127.0.0.1', help='The interface to bind to.')
 @click.option('--port', '-p', default=8000, type=int, help='The port to start searching from.')
 @click.option('--no-reload', is_flag=True, default=False, help='Disable live-reloading.')
-def run(file, host, port, no_reload):
+@click.pass_context
+def run(ctx, file, host, port, no_reload):
+    if ctx.obj.get('DEBUG'):
+        click.echo(f"{C.MUTED}Debug mode is on. Loading file: {file}{C.END}")
     click.echo(SYQLORIX_BANNER)
     doc_instance = find_doc_instance(file)
+    if ctx.obj.get('DEBUG'):
+        click.echo(f"{C.MUTED}Found doc instance: {doc_instance}{C.END}")
+        click.echo(f"{C.MUTED}Starting server with options: host={host}, port={port}, live_reload={not no_reload}{C.END}")
     doc_instance.run(file_path=file, host=host, port=port, live_reload=not no_reload)
 
 @main.command()
 @click.argument('file', type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.option('--output', '-o', 'output_path_str', default='dist', help='Output directory name.')
-def build(file, output_path_str):
+@click.pass_context
+def build(ctx, file, output_path_str):
     """Build a static version of the Syqlorix application."""
     import shutil
     from .core import _load_app_from_file
+
+    if ctx.obj.get('DEBUG'):
+        click.echo(f"{C.MUTED}Debug mode is on. Starting build for: {file}{C.END}")
 
     click.echo(SYQLORIX_BANNER)
     click.echo(f"🔥 {C.PRIMARY}Starting static build for {C.BOLD}{Path(file).name}{C.END}...")
@@ -84,12 +96,21 @@ def build(file, output_path_str):
     if not app_instance:
         click.echo(f"❌ {C.ERROR}Build failed: Could not load Syqlorix instance.{C.END}", err=True)
         sys.exit(1)
+        
+    if ctx.obj.get('DEBUG'):
+        click.echo(f"{C.MUTED}Found app instance: {app_instance}{C.END}")
 
     output_path = Path(output_path_str).resolve()
     project_root = Path(file).parent.resolve()
+    
+    if ctx.obj.get('DEBUG'):
+        click.echo(f"{C.MUTED}Output path resolved to: {output_path}{C.END}")
+        click.echo(f"{C.MUTED}Project root resolved to: {project_root}{C.END}")
 
     # Clean and create output directory
     if output_path.exists():
+        if ctx.obj.get('DEBUG'):
+            click.echo(f"{C.MUTED}Output path exists. Removing: {output_path}{C.END}")
         shutil.rmtree(output_path)
     output_path.mkdir(parents=True, exist_ok=True)
 
@@ -203,19 +224,39 @@ if __name__ == "__main__":
 '''
 
 @main.command()
-@click.argument('filename', default='app.py', type=click.Path())
-def init(filename):
-    if not filename.endswith('.py'):
-        filename += '.py'
+@click.argument('path', default='.', type=click.Path(resolve_path=False)) # Don't resolve path immediately
+def init(path):
+    input_path = Path(path)
+    
+    if str(path).endswith(os.sep) or (input_path.exists() and input_path.is_dir()):
+        # User explicitly provided a directory or an existing directory without trailing slash
+        output_dir = input_path
+        output_file = output_dir / 'app.py'
+    else: # User provided a file path or a non-existent path that is not a directory
+        output_file = input_path
+        if not output_file.name.endswith('.py'):
+            output_file = output_file.with_suffix('.py')
+        output_dir = output_file.parent
 
-    if os.path.exists(filename):
-        click.echo(f"{C.ERROR}Error: File '{filename}' already exists.{C.END}")
+    # Ensure parent directories exist
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if output_file.exists():
+        click.echo(f"{C.ERROR}Error: File '{output_file}' already exists.{C.END}")
         return
-    with open(filename, 'w') as f:
+    
+    with open(output_file, 'w') as f:
         f.write(INIT_TEMPLATE)
-    click.echo(f"🚀 {C.SUCCESS}Created a new Syqlorix project in {C.BOLD}{filename}{C.END}.")
-    run_command_filename = filename.split(os.sep)[-1]
-    click.echo(f"   {C.MUTED}To run it, use: {C.PRIMARY}syqlorix run {run_command_filename}{C.END}")
+    click.echo(f"🚀 {C.SUCCESS}Created a new Syqlorix project in {C.BOLD}{output_file}{C.END}.")
+    
+    try:
+        # Get path relative to current working directory
+        run_command_suggestion = output_file.relative_to(Path.cwd()).as_posix()
+    except ValueError:
+        # If not relative (e.g., different drive or parent), use the full path
+        run_command_suggestion = output_file.as_posix()
+
+    click.echo(f"   {C.MUTED}To run it, use: {C.PRIMARY}syqlorix run {run_command_suggestion}{C.END}")
 
 if __name__ == '__main__':
     main()
