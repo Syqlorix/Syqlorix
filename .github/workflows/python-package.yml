@@ -48,7 +48,7 @@ jobs:
         python -m build --sdist --wheel --outdir dist/
         
     - name: Store distribution artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: syqlorix-dist-${{ matrix.python-version }}
         path: dist/
