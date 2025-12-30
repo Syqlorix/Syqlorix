@@ -61,4 +61,11 @@ pip-delete-this-directory.txt
 /LOGS
 
 # Generated HTML from examples
+
 *.html
+
+
+
+# Local test directories
+
+testdirp/

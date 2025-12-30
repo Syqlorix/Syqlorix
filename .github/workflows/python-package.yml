@@ -15,7 +15,7 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
@@ -48,7 +48,7 @@ jobs:
         python -m build --sdist --wheel --outdir dist/
         
     - name: Store distribution artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: syqlorix-dist-${{ matrix.python-version }}
         path: dist/
