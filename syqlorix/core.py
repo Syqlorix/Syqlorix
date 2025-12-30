@@ -11,6 +11,14 @@ import secrets
 import shutil
 import traceback
 import urllib.parse
+import starlark
+
+# Thrift imports
+from thrift.transport import TSocket
+from thrift.transport import TTransport
+from thrift.protocol import TBinaryProtocol
+from .thrift_gen.syqlorix.thrift import SyqlorixService
+from .thrift_gen.syqlorix.thrift.ttypes import ThriftRequest, ThriftResponse
 
 from jsmin import jsmin
 from cssmin import cssmin
@@ -308,7 +316,12 @@ class Component(Node):
         self.tag_name = ""
         self.props = props
         self.children = list(children)
-        self.scope_attr = f"data-syq-{secrets.token_hex(4)}"
+        try:
+            from . import syqlorix_rust
+            scope_id = syqlorix_rust.generate_scope_id()
+        except Exception:
+            scope_id = secrets.token_hex(4)
+        self.scope_attr = f"data-syq-{scope_id}"
         self.state = {}
 
     def set_state(self, new_state):
@@ -338,6 +351,37 @@ class Component(Node):
         raise NotImplementedError(
             f"Component '{self.__class__.__name__}' does not implement the create method."
         )
+
+class StarlarkComponent(Component):
+    def __init__(self, script_content=None, script_path=None, **props):
+        super().__init__(**props)
+        self.script_content = script_content
+        if script_path:
+            self.script_content = Path(script_path).read_text()
+        
+    def create(self, children=None):
+        if not self.script_content:
+            return ""
+        
+        def create_tag(name, *children, **attrs):
+            tag_class = globals().get(name)
+            if not tag_class:
+                # Fallback to generic Node if tag not found
+                res = Node(*children, **attrs)
+            else:
+                res = tag_class(*children, **attrs)
+            return starlark.OpaquePythonObject(res)
+
+        ast = starlark.parse("component.star", self.script_content)
+        module = starlark.Module()
+        globals_ = starlark.Globals.standard()
+        
+        # Expose props and tag creation function
+        module["props"] = self.props
+        module.add_callable("tag", create_tag)
+        
+        result = starlark.eval(module, ast, globals_)
+        return result
 
 class Comment(Node):
     def render(self, indent=0, pretty=True):
@@ -534,6 +578,13 @@ class Syqlorix(Node):
         self._live_reload_ws_port = None
         self._live_reload_host = "127.0.0.1"
         self._live_reload_enabled = True
+        self._backend_host = None
+        self._backend_port = None
+
+    def use_backend(self, host="127.0.0.1", port=9090):
+        self._backend_host = host
+        self._backend_port = port
+        return self
 
     def route(self, path, methods=['GET']):
         def decorator(handler_func):
@@ -746,6 +797,42 @@ class Syqlorix(Node):
                     return
                 try:
                     request = Request(self)
+
+                    # Use backend if configured
+                    if self._app_instance._backend_host:
+                        try:
+                            # Make a thrift call to the backend
+                            transport = TSocket.TSocket(self._app_instance._backend_host, self._app_instance._backend_port)
+                            transport = TTransport.TBufferedTransport(transport)
+                            protocol = TBinaryProtocol.TBinaryProtocol(transport)
+                            client = SyqlorixService.Client(protocol)
+                            transport.open()
+
+                            thrift_request = ThriftRequest(
+                                method=request.method,
+                                path=request.path,
+                                headers={str(k): str(v) for k, v in request.headers.items()},
+                                query_params={str(k): str(v) for k, v in request.query_params.items()},
+                                form_data={str(k): str(v) for k, v in request.form_data.items()},
+                                body=request.body
+                            )
+
+                            thrift_response = client.render(thrift_request)
+                            transport.close()
+
+                            html_bytes = thrift_response.html.encode("utf-8")
+                            self.send_response(thrift_response.status_code)
+                            for key, value in thrift_response.headers.items():
+                                self.send_header(key, value)
+                            self.send_header("Content-length", str(len(html_bytes)))
+                            self.end_headers()
+                            self.wfile.write(html_bytes)
+                            return
+                        except Exception as e:
+                            print(f"{C.ERROR}Backend error: {e}{C.END}")
+                            # Fallback to local rendering if backend fails? 
+                            # For now, just continue to local handling if backend is not used or fails
+                    
                     if request.path == '/favicon.ico':
                         self.send_response(204)
                         self.end_headers()
@@ -963,7 +1050,7 @@ doc = Syqlorix()
 
 # I only use this when I want to add some customs that are requested      
 __all__ = [
-    'Node', 'Syqlorix', 'Component', 'Comment', 'Request', 'Blueprint', 'redirect',
+    'Node', 'Syqlorix', 'Component', 'StarlarkComponent', 'Comment', 'Request', 'Blueprint', 'redirect',
     'head', 'body', 'style', 'script',
     'doc',
     'input_',
