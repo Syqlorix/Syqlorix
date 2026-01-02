@@ -8,7 +8,7 @@ name = "syqlorix_rust"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.20.0", features = ["extension-module"] }
+pyo3 = { version = "0.24.1", features = ["extension-module"] }
 reqwest = { version = "0.11", features = ["blocking"] }
 dirs = "5.0"
 tempfile = "3"

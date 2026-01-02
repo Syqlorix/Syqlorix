@@ -1,4 +1,6 @@
 use pyo3::prelude::*;
+use pyo3::types::PyModule;
+use pyo3::Bound;
 use std::io::{self, Write};
 use std::process::{Command, Stdio};
 use std::env;
@@ -113,7 +115,7 @@ fn process_tailwind_css(html_content: String) -> PyResult<String> {
 
 /// A Python module implemented in Rust.
 #[pymodule]
-fn syqlorix_rust(_py: Python, m: &PyModule) -> PyResult<()> {
+fn syqlorix_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
     m.add_function(wrap_pyfunction!(process_tailwind_css, m)?)?;
     m.add_function(wrap_pyfunction!(generate_scope_id, m)?)?;
