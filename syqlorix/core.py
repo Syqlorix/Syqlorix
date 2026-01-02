@@ -12,6 +12,7 @@ import shutil
 import traceback
 import urllib.parse
 import starlark
+import socket
 
 # Thrift imports
 from thrift.transport import TSocket
@@ -1006,7 +1007,10 @@ class Syqlorix(Node):
                     print(f"✅ {C.SUCCESS}Port {port} was busy. Server is now running on port {current_port}.{C.END}")
                 break
             except PermissionError:
-                print(f"{C.ERROR}Error: Permission denied. You need root privileges to bind to port {current_port}.{C.END}", file=sys.stderr)
+                print(f"{C.ERROR}Permission denied: Port {current_port} is a privileged port.\n   Try running with 'sudo' or use a port number higher than 1024.{C.END}", file=sys.stderr)
+                sys.exit(1)
+            except socket.gaierror:
+                print(f"{C.ERROR}DNS Error: Could not resolve hostname '{host}'. Please check the spelling or network connection.{C.END}", file=sys.stderr)
                 sys.exit(1)
             except OSError as e:
                 if e.errno == 98: # Address already in use
@@ -1017,10 +1021,10 @@ class Syqlorix(Node):
                         print(f"{C.ERROR}Failed to find an available port after {max_port_attempts} attempts.{C.END}", file=sys.stderr)
                         sys.exit(1)
                 elif e.errno == 99: # Cannot assign requested address
-                    print(f"{C.ERROR}Error: Invalid host address '{host}'. The address is not available on this machine.{C.END}", file=sys.stderr)
+                    print(f"{C.ERROR}Invalid address: '{host}' is not assigned to any local network interface on this machine.\n   Try using '0.0.0.0' (all interfaces) or '127.0.0.1' (localhost).{C.END}", file=sys.stderr)
                     sys.exit(1)
                 else:
-                    print(f"{C.ERROR}Error: Failed to bind to {host}:{current_port}. Reason: {e}{C.END}", file=sys.stderr)
+                    print(f"{C.ERROR}System Error: Failed to bind to {host}:{current_port}.\n   Reason: {e.strerror} (Errno {e.errno}){C.END}", file=sys.stderr)
                     sys.exit(1)
         
         if http_server:
