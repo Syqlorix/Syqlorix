@@ -8,7 +8,8 @@ version = "1.4.2"
 description = "A hyper-minimalist Python framework for building component-based web UIs and static sites with a pure Python DSL."
 readme = "README.md"
 requires-python = ">=3.8"
-license = { text = "MIT License" }
+license = "MIT"
+license-files = ["LICENSE"]
 keywords = ["html", "css", "javascript", "dsl", "web", "components", "state-management", "static-site-generator", "ui", "live-reload", "routing", "static-server"]
 authors = [
   { name = "Karl Benjamin R. Bughaw", email = "benjo@pro.space" }
