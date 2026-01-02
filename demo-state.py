@@ -25,7 +25,11 @@ class Counter(Component):
     def __init__(self, *children, **props):
         super().__init__(*children, **props)
         # Initialize state from props (e.g., from request query params)
-        self.set_state({"count": int(self.props.get("initial_count", 0))})
+        try:
+            count = int(self.props.get("initial_count", 0))
+        except ValueError:
+            count = 0
+        self.set_state({"count": count})
 
     def create(self, children=None):
         count = self.state.get("count", 0)

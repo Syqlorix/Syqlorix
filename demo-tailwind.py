@@ -21,7 +21,7 @@ set_scope("demo")
 class Footer(Component):
     def create(self, children=None):
         return div(
-            p("Last Modified in v1.2.5 ✨"),
+            p("Last Modified in v1.4.2 ✨"),
             a("Check out the source on GitHub",
               href="https://github.com/Syqlorix/Syqlorix",
               class_="text-[#feda6a] hover:text-white"),
@@ -58,7 +58,7 @@ doc / head(
     title("Syqlorix - The Future is Now"),
     meta(charset="UTF-8"),
     meta(name="viewport", content="width=device-width, initial-scale=1.0"),
-    tailwind("demo.css", scope="demo")
+    tailwind(scope="demo")
 ) / body(
     div(
         img(
