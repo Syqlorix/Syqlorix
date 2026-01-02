@@ -37,7 +37,7 @@ It is designed for developers who want to create web UIs, static sites, and simp
 
 *   **All-in-One**: Write entire pages and components in `.py` files.
 *   **Component-Based**: Structure your UI with reusable, stateful components.
-*   **Minimal API**: Small surface area, quick to learn.
+*   **High Performance**: Native Rust core for critical hot-paths (v1.4+).
 *   **Zero-Config**: Sensible defaults for instant productivity.
 
 ---
@@ -45,13 +45,14 @@ It is designed for developers who want to create web UIs, static sites, and simp
 ## Key Features
 
 *   **Pure Python HTML:** Generate any HTML element using Python objects.
+*   **Rust-Powered Performance:** Blazing fast ID generation and Tailwind CSS processing (up to 15x speedup).
+*   **Secure Starlark Components:** Define UI logic in a deterministic, 100% sandboxed environment.
+*   **Distributed Scalability:** Optional support for high-concurrency Scala backends via Apache Thrift.
 *   **Component-Based Architecture:** Build your UI with reusable components that support props, children, scoped CSS, and lifecycle methods.
 *   **State Management:** Create interactive components with a simple, server-side state management pattern.
 *   **Live Reload Server:** The dev server automatically reloads your browser on code changes.
-*   **Static Site Generation (SSG):** Build your entire application into a high-performance static website with the `build` command.
-*   **Blueprints:** Organize large applications by splitting routes into multiple files.
+*   **Static Site Generation (SSG):** Build your entire application into a high-performance static website.
 *   **Dynamic Routing:** Create clean routes with variable paths (e.g., `/user/<username>`).
-*   **JSON API Responses:** Return a `dict` or `list` from a route to create an API endpoint.
 
 ## Quick Start
 
@@ -91,7 +92,7 @@ It is designed for developers who want to create web UIs, static sites, and simp
 
 ### Component-Based Architecture
 
-Syqlorix now features a powerful component-based architecture. Components are reusable, stateful, and can have their own scoped styles.
+Syqlorix features a powerful component-based architecture. Components are reusable, stateful, and can have their own scoped styles.
 
 ```python
 # components.py
@@ -100,49 +101,58 @@ from syqlorix import Component, div, h1, p, style
 class Card(Component):
     def before_render(self):
         # Lifecycle method: runs before create()
-        # Use this to modify state or props before rendering
         self.title = self.props.get("title", "Default Title").upper()
 
     def create(self, children=None):
-        # Define scoped styles using the component's unique scope_attr
-        scoped_style = f"""
-            div[{self.scope_attr}] h1 {{
-                color: blue;
-            }}
-        """
+        # Scoped styles using the component's unique scope_attr (Rust-powered)
+        scoped_style = f"div[{self.scope_attr}] h1 {{ color: blue; }}"
         
         return div(
             style(scoped_style),
-            h1(self.title), # Use the title from before_render
-            *(children or []) # Render children passed to the component
+            h1(self.title),
+            *(children or [])
         )
+```
 
-# app.py
-from syqlorix import Syqlorix, body
-from components import Card
+### Secure Starlark Components
 
+Use Starlark for deterministic and sandboxed component definitions, ideal for user-generated layouts.
+
+```python
+from syqlorix import StarlarkComponent
+
+starlark_ui = """
+tag("div", 
+    tag("h1", props["title"]),
+    tag("p", "Rendered securely via Starlark."),
+    class_="container"
+)
+"""
+
+comp = StarlarkComponent(script_content=starlark_ui, title="Secure UI")
+```
+
+### High-Concurrency Backend (Optional)
+
+Delegate rendering to an external Scala backend via Thrift for massive horizontal scaling.
+
+```python
 doc = Syqlorix()
-
-@doc.route('/')
-def home(request):
-    return body(
-        # Pass props and children to your component
-        Card(title="My Card",
-            p("This is the content of the card.")
-        )
-    )
+# Enable high-performance Scala backend
+doc.use_backend(host="127.0.0.1", port=9090)
 ```
 
 ### State Management
-
-Components can have their own internal state. State is managed on the server, and updates are triggered by new page requests.
 
 ```python
 class Counter(Component):
     def __init__(self, *children, **props):
         super().__init__(*children, **props)
-        # Initialize state from props (e.g., from request query params)
-        self.set_state({"count": int(self.props.get("initial_count", 0))})
+        try:
+            count = int(self.props.get("initial_count", 0))
+        except ValueError:
+            count = 0
+        self.set_state({"count": count})
 
     def create(self, children=None):
         count = self.state.get("count", 0)
@@ -156,80 +166,26 @@ class Counter(Component):
         )
 ```
 
-### Structuring Large Applications with Blueprints
-
-Use Blueprints to organize your routes into separate files.
-
-```python
-# pages/about.py
-from syqlorix import Blueprint, h1
-
-about_bp = Blueprint("about")
-
-@about_bp.route('/about')
-def about_page(request):
-    return h1("About Us")
-
-# main_app.py
-from syqlorix import Syqlorix
-from pages.about import about_bp
-
-doc = Syqlorix()
-doc.register_blueprint(about_bp)
-```
-
-### Dynamic Routing
-
-Define routes with variable sections using `<var_name>` syntax. The captured values are available in `request.path_params`.
-
-```python
-@doc.route('/user/<username>')
-def user_profile(request):
-    username = request.path_params.get('username', 'Guest')
-    return h1(f"Hello, {username}!")
-```
-
 </details>
 
 <details>
   <summary><h2><strong>› Click to view Command-Line Interface (CLI)</strong></h2></summary>
 
-Syqlorix comes with a simple and powerful CLI.
-
 *   #### `syqlorix init [filename]`
-    Creates a new project file with a helpful template to get you started.
-    ```bash
-    syqlorix init my_cool_app
-    ```
-
+    Creates a new project file with a helpful template.
 *   #### `syqlorix run <file>`
     Runs the live-reloading development server.
-    *   `--port <number>`: Specify a starting port (defaults to 8000).
-    *   `--no-reload`: Disable the live-reload feature.
-    ```bash
-    syqlorix run app.py --port 8080
-    ```
-
 *   #### `syqlorix build <file>`
-    Builds a static version of your site from your app's static routes.
-    *   `--output <dirname>` or `-o <dirname>`: Set the output directory name (defaults to `dist`).
-    ```bash
-    syqlorix build main.py -o public
-    ```
+    Builds a static version of your site in the `dist/` folder.
 
 </details>
 
 ## Target Use Cases
 
 *   **Fast Prototyping**: Quickly mock up web interfaces without juggling multiple files.
-*   **Static Sites**: Build blogs, portfolios, and documentation sites.
-*   **Simple Dashboards**: Create internal tools or data visualizations.
-*   **Educational Tools**: A clear, Python-only way to demonstrate web fundamentals.
-*   **Simple APIs**: Build and serve JSON data from Python scripts.
-
-## Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests on the [GitHub repository](https://github.com/Syqlorix/Syqlorix).
+*   **High-Performance Static Sites**: Optimized build times using the Rust core.
+*   **Secure Dashboards**: Sandboxed component execution via Starlark.
+*   **Distributed Systems**: Web frontends that scale using the Scala backend.
 
 ## License
 
