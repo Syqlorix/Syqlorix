@@ -69,3 +69,24 @@ pip-delete-this-directory.txt
 # Local test directories
 
 testdirp/
+my_test_project/
+scala_backend/gen-java/
+rust_ext/target/
+scala-cli
+demo-starlark.py
+test_starlark.py
+test_rust_ext.py
+starlark_help.txt
+benchmarks.py
+output.log
+server.log
+test_cli_manual.py
+TestGolgrax.md
+LICENSE_CHECK.md
+venv_dev/
+test_starlark_crash.py
+test_rust_stress.py
+test_backend_connection.py
+compare_versions.py
+PERFORMANCE_COMPARE.md
+deleteTemp.sh
