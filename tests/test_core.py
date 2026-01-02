@@ -2,7 +2,15 @@ import pytest
 from syqlorix.core import Syqlorix, Component, div, h1, p, body, head, style
 
 def test_component_rendering():
-    """Test that a basic component renders correctly."""
+    """
+    Test that a basic Component subclass renders the expected HTML structure.
+    
+    This verifies:
+    1. Subclassing Component.
+    2. Implementing the `create` method.
+    3. Passing props via the constructor.
+    4. Rendering standard HTML tags (div, h1, p).
+    """
 
     class SimpleCard(Component):
         def create(self, children=None):
@@ -26,7 +34,10 @@ def test_component_rendering():
     assert "<p>\n        This is a simple card.\n      </p>" in response.text
 
 def test_component_default_props():
-    """Test that a component renders with default properties."""
+    """
+    Test that a component renders with default properties when none are provided.
+    This ensures the `props` handling in `Component.__init__` works as expected.
+    """
 
     class SimpleCard(Component):
         def create(self, children=None):
@@ -50,7 +61,10 @@ def test_component_default_props():
 
 
 def test_component_not_implemented():
-    """Test that a component without a create method raises an error."""
+    """
+    Test that a component without a create method raises NotImplementedError.
+    This enforces the contract that Components must implement `create`.
+    """
 
     class BadComponent(Component):
         pass
@@ -66,7 +80,10 @@ def test_component_not_implemented():
         client.get('/')
 
 def test_component_with_children():
-    """Test that a component can render children."""
+    """
+    Test that a component can render children passed to its constructor.
+    This validates the composition pattern of the framework.
+    """
 
     class Container(Component):
         def create(self, children=None):
@@ -91,7 +108,13 @@ def test_component_with_children():
     assert "<p>\n        This is a child paragraph.\n      </p>" in response.text
 
 def test_component_scoped_css():
-    """Test that component styles are scoped and do not conflict."""
+    """
+    Test that component styles are scoped and do not conflict.
+    
+    This validates:
+    1. Unique scope ID generation (now powered by optimized Rust).
+    2. Injection of the scope attribute into the HTML tags.
+    """
 
     class BlueComponent(Component):
         def create(self, children=None):
@@ -132,7 +155,14 @@ def test_component_scoped_css():
     assert response.text.count("<style>") == 2
 
 def test_component_lifecycle_methods():
-    """Test that component lifecycle methods are called correctly."""
+    """
+    Test that component lifecycle methods are called correctly.
+    Validates execution order of:
+    1. __init__
+    2. before_render
+    3. create
+    4. after_render
+    """
 
     class LifecycleComponent(Component):
         def __init__(self, *children, **props):
