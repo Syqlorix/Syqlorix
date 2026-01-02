@@ -29,9 +29,9 @@
 
 ## Overview
 
-**Syqlorix** is a hyper-minimalist Python package for building full HTML documents—including **CSS** and **JavaScript**—from a **single Python script**. It offers a pure Python DSL (Domain-Specific Language) for authoring web interfaces, with a built-in live-reloading server, dynamic routing, and a powerful static site generator.
+**Syqlorix** is a high-performance, hyper-minimalist hybrid web framework for Python. It combines a pure Python DSL with a Rust-powered core for maximum speed, secure Starlark-based components, and an optional distributed Scala backend, complete with live-reloading and static site generation.
 
-It is designed for developers who want to create web UIs, static sites, and simple APIs without leaving the comfort of Python.
+It is designed for developers who want to build full HTML documents—including CSS and JavaScript—entirely within Python, while enjoying the execution speeds of a compiled backend.
 
 ### Core Design Principles
 
