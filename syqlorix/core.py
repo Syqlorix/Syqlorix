@@ -248,6 +248,10 @@ class Plugin:
 
 plugins: List[Plugin] = []
 
+class Safe(str):
+    """A string subclass that indicates the content is safe for raw rendering."""
+    pass
+
 class Node:
     _SELF_CLOSING_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 
@@ -286,7 +290,13 @@ class Node:
                 if value:
                     parts.append(key)
             elif value is not None:
-                parts.append(f'{key}={repr(value)}')
+                # Escape attribute values as well
+                try:
+                    from . import syqlorix_rust
+                    escaped_val = syqlorix_rust.escape_html(str(value))
+                except Exception:
+                    escaped_val = str(value).replace('<', '&lt;').replace('>', '&gt;')
+                parts.append(f'{key}={repr(escaped_val)}')
         return " " + " ".join(parts)
 
     def render(self, indent=0, pretty=True):
@@ -306,6 +316,13 @@ class Node:
             if isinstance(child, Node):
                 html += child.render(indent + 1, pretty)
             else:
+                if not isinstance(child, Safe):
+                    try:
+                        from . import syqlorix_rust
+                        child = syqlorix_rust.escape_html(str(child))
+                    except Exception:
+                        child = str(child).replace('<', '&lt;').replace('>', '&gt;')
+                
                 html += f"{inner_pad}{child}{nl}"
         html += f"{pad}</{self.tag_name}>{nl}"
         return html
@@ -397,7 +414,7 @@ class body(Node):
 
 class style(Node):
     def __init__(self, css_content, **attributes):
-        super().__init__(css_content, **attributes)
+        super().__init__(Safe(css_content), **attributes)
 
     def render(self, indent=0, pretty=True):
         content = str(self.children[0])
@@ -406,7 +423,7 @@ class style(Node):
                 content = cssmin(content)
             except Exception as e:
                 print(f"{C.WARNING}Could not minify CSS: {e}{C.END}")
-        self.children = [content]
+        self.children = [Safe(content)]
         return super().render(indent, pretty)
 
 class script(Node):
@@ -415,7 +432,7 @@ class script(Node):
             attributes['src'] = src
             super().__init__(**attributes)
         else:
-            super().__init__(js_content, **attributes)
+            super().__init__(Safe(js_content), **attributes)
         attributes['type'] = type
 
     def render(self, indent=0, pretty=True):
@@ -425,7 +442,7 @@ class script(Node):
                 content = jsmin(content)
             except Exception as e:
                 print(f"{C.WARNING}Could not minify JS: {e}{C.END}")
-            self.children = [content]
+            self.children = [Safe(content)]
         return super().render(indent, pretty)
 
 class Request:
@@ -1051,6 +1068,7 @@ doc = Syqlorix()
 # I only use this when I want to add some customs that are requested      
 __all__ = [
     'Node', 'Syqlorix', 'Component', 'StarlarkComponent', 'Comment', 'Request', 'Blueprint', 'redirect',
+    'Safe',
     'head', 'body', 'style', 'script',
     'doc',
     'input_',

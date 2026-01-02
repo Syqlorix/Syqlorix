@@ -25,6 +25,24 @@ fn generate_scope_id() -> PyResult<String> {
     Ok(hex::encode(bytes))
 }
 
+/// High-performance HTML escaping.
+/// Escapes <, >, &, ", and ' for XSS protection.
+#[pyfunction]
+fn escape_html(input: String) -> String {
+    let mut escaped = String::with_capacity(input.len());
+    for c in input.chars() {
+        match c {
+            '<' => escaped.push_str("&lt;"),
+            '>' => escaped.push_str("&gt;"),
+            '&' => escaped.push_str("&amp;"),
+            '"' => escaped.push_str("&quot;"),
+            '\'' => escaped.push_str("&#39;"),
+            _ => escaped.push(c),
+        }
+    }
+    escaped
+}
+
 fn get_platform_executable_name() -> Result<String, String> {
     let os = env::consts::OS;
     let arch = env::consts::ARCH;
@@ -119,5 +137,6 @@ fn syqlorix_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
     m.add_function(wrap_pyfunction!(process_tailwind_css, m)?)?;
     m.add_function(wrap_pyfunction!(generate_scope_id, m)?)?;
+    m.add_function(wrap_pyfunction!(escape_html, m)?)?;
     Ok(())
 }

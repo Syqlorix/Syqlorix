@@ -87,6 +87,8 @@ venv_dev/
 test_starlark_crash.py
 test_rust_stress.py
 test_backend_connection.py
+test_xss.py
+testDebug.py
 compare_versions.py
 PERFORMANCE_COMPARE.md
 deleteTemp.sh
