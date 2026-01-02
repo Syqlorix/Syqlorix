@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "syqlorix"
-version = "1.4.5"
+version = "1.4.6"
 description = "A high-performance, hyper-minimalist hybrid web framework for Python. It combines a pure Python DSL with a Rust-powered core for maximum speed, secure Starlark-based components, and an optional distributed Scala backend, complete with live-reloading and static site generation."
 readme = "README.md"
 requires-python = ">=3.8"

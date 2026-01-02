@@ -1005,6 +1005,9 @@ class Syqlorix(Node):
                 if current_port != port:
                     print(f"✅ {C.SUCCESS}Port {port} was busy. Server is now running on port {current_port}.{C.END}")
                 break
+            except PermissionError:
+                print(f"{C.ERROR}Error: Permission denied. You need root privileges to bind to port {current_port}.{C.END}", file=sys.stderr)
+                sys.exit(1)
             except OSError as e:
                 if e.errno == 98: # Address already in use
                     if attempt < max_port_attempts - 1:
@@ -1013,8 +1016,12 @@ class Syqlorix(Node):
                     else:
                         print(f"{C.ERROR}Failed to find an available port after {max_port_attempts} attempts.{C.END}", file=sys.stderr)
                         sys.exit(1)
+                elif e.errno == 99: # Cannot assign requested address
+                    print(f"{C.ERROR}Error: Invalid host address '{host}'. The address is not available on this machine.{C.END}", file=sys.stderr)
+                    sys.exit(1)
                 else:
-                    raise
+                    print(f"{C.ERROR}Error: Failed to bind to {host}:{current_port}. Reason: {e}{C.END}", file=sys.stderr)
+                    sys.exit(1)
         
         if http_server:
             self._live_reload_ws_port = current_port + 1
